@@ -1,0 +1,17 @@
+{
+  "name": "maintenance-manager",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "cds run",
+    "watch": "cds watch",
+    "build": "cds build/all"
+  },
+  "dependencies": {
+    "@sap/cds": "^6.0.0",
+    "sqlite3": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
