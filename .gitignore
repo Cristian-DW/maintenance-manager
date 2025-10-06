@@ -1,34 +1,9 @@
-# CAP maintenance-manager
-_out
+node_modules/
+.env
+.env.*
+cds.env
 *.db
 *.sqlite
-connection.properties
-default-*.json
-.cdsrc-private.json
-gen/
-node_modules/
-target/
-
-# Web IDE, App Studio
-.che/
-.gen/
-
-# MTA
-*_mta_build_tmp
-*.mtar
-mta_archives/
-
-# Other
+.mta_archives/
+.vscode/
 .DS_Store
-*.orig
-*.log
-
-*.iml
-*.flattened-pom.xml
-
-# IDEs
-# .vscode
-# .idea
-
-# @cap-js/cds-typer
-@cds-models
