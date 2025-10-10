@@ -1,29 +1,44 @@
 namespace mm;
 
+using { cuid } from '@sap/cds/common';
 
-entity Users {
-  key ID      : UUID;
-  name        : String(100);
-  email       : String(200);
-  role        : String(30); // 'REQUESTER','TECH','MANAGER'
+type Role : String(30) enum {
+    REQUESTER = 'REQUESTER';
+    TECH = 'TECH';
+    MANAGER = 'MANAGER';
 }
 
-entity Assets {
-  key ID      : UUID;
-  code        : String(50);
-  location    : String(200);
-  info        : String;
+type Status : String(20) enum {
+    OPEN = 'OPEN';
+    ASSIGNED = 'ASSIGNED';
+    IN_PROGRESS = 'IN_PROGRESS';
+    DONE = 'DONE';
+    CLOSED = 'CLOSED';
 }
 
-entity MaintenanceRequests {
-  key ID        : UUID;
-  title         : String(200);
-  description   : String;
-  status        : String(20); // OPEN, ASSIGNED, IN_PROGRESS, DONE, CLOSED
-  priority      : Integer;
-  createdAt     : Timestamp;
-  updatedAt     : Timestamp;
-  requestedBy   : Association to Users;
-  assignedTo    : Association to Users;
-  asset         : Association to Assets;
+entity Users : cuid {
+    name        : String(100) @mandatory;
+    email       : String(200) @mandatory;
+    role        : Role @mandatory;
+    requests    : Association to many MaintenanceRequests on requests.requestedBy = $self;
+    assignments : Association to many MaintenanceRequests on assignments.assignedTo = $self;
+}
+
+entity Assets : cuid {
+    code        : String(50) @mandatory;
+    location    : String(200) @mandatory;
+    info        : String;
+    requests    : Association to many MaintenanceRequests on requests.asset = $self;
+}
+
+entity MaintenanceRequests : cuid {
+    title       : String(200) @mandatory;
+    description : String;
+    status      : Status @mandatory default 'OPEN';
+    priority    : Integer @mandatory default 1;
+    createdAt   : Timestamp @cds.on.insert: $now;
+    updatedAt   : Timestamp @cds.on.insert: $now @cds.on.update: $now;
+    requestedBy : Association to Users;
+    assignedTo  : Association to Users;
+    asset       : Association to Assets;
 }
