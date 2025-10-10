@@ -1,6 +1,5 @@
 namespace mm;
 
-using { cuid } from '@sap/cds/common';
 
 entity Users {
   key ID      : UUID;

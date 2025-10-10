@@ -7,3 +7,5 @@ cds.env
 .mta_archives/
 .vscode/
 .DS_Store
+.gitignore
+dist/

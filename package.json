@@ -8,10 +8,21 @@
     "build": "cds build/all"
   },
   "dependencies": {
-    "@sap/cds": "^6.0.0",
-    "sqlite3": "^5.0.0"
+    "@sap/cds": "^9.3.1",
+    "sqlite3": "^5.1.7"
   },
   "engines": {
     "node": ">=18"
+  },
+ "cds": {
+  "requires": {
+    "db": {
+      "kind": "sqlite",
+      "model": "db/"
+    }
+  }
+},
+  "devDependencies": {
+    "@cap-js/sqlite": "^2.0.3"
   }
 }
