@@ -2,10 +2,20 @@ node_modules/
 .env
 .env.*
 cds.env
-*.db
 *.sqlite
 .mta_archives/
 .vscode/
 .DS_Store
 .gitignore
 dist/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Sensitive data files
+/db/data/*.sql
+/db/data/01-users.sql
+/db/data/02-assets.sql
+/db/data/03-maintenance-requests.sql
