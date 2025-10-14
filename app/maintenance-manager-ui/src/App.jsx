@@ -1,13 +1,14 @@
-import React from 'react'
-import './App.css'
+import { useState } from 'react';
+import RequestList from './components/RequestList';
+import RequestForm from './components/RequestForm';
 
-function App() {
-
+export default function App() {
+  const [reload, setReload] = useState(false);
   return (
-    <>
-     <div></div>
-    </>
-  )
+    <div>
+      <h1>Gestor de Solicitudes de Mantenimiento</h1>
+      <RequestForm onCreated={() => setReload(!reload)} />
+      <RequestList key={reload} />
+    </div>
+  );
 }
-
-export default App
