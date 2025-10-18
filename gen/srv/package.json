@@ -1,0 +1,32 @@
+{
+ "name": "maintenance-manager",
+ "version": "0.1.0",
+ "private": true,
+ "scripts": {
+  "start": "cds run",
+  "watch": "cds watch",
+  "build": "cds build/all"
+ },
+ "dependencies": {
+  "@sap/cds": "^9.3.1",
+  "sqlite3": "^5.1.7",
+  "@sap/xssec": "^4"
+ },
+ "engines": {
+  "node": ">=18"
+ },
+ "cds": {
+  "requires": {
+   "db": {
+    "kind": "sqlite",
+    "model": "db/"
+   },
+   "[production]": {
+    "auth": "xsuaa"
+   }
+  }
+ },
+ "devDependencies": {
+  "@cap-js/sqlite": "^2.0.3"
+ }
+}
