@@ -1,38 +1,33 @@
-import { useEffect, useState } from 'react';
-import api from '../api';
+import { useEffect, useState } from "react";
+import api from "../api";
+import { Card, CardContent } from "./ui/card";
 
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
 
+  const load = async () => {
+    const res = await api.get("MaintenanceRequests");
+    setRequests(res.data.value);
+  };
+
   useEffect(() => {
-    api.get('MaintenanceRequests').then((res) => {
-      setRequests(res.data.value);
-    });
+    load();
   }, []);
 
   return (
-    <div className="p-4">
-      <h2>Solicitudes de Mantenimiento</h2>
-      <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>Título</th>
-            <th>Estado</th>
-            <th>Prioridad</th>
-            <th>Asignado a</th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((r) => (
-            <tr key={r.ID}>
-              <td>{r.title}</td>
-              <td>{r.status}</td>
-              <td>{r.priority}</td>
-              <td>{r.assignedTo}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-4 grid gap-4">
+      {requests.map((r) => (
+        <Card key={r.ID}>
+          <CardContent className="p-4 flex flex-col">
+            <h3 className="text-lg font-semibold">{r.title}</h3>
+            <p className="text-sm text-gray-500">{r.description}</p>
+            <div className="flex justify-between mt-2 text-sm">
+              <span>🧑 {r.assignedTo || "Sin asignar"}</span>
+              <span>⏱️ {r.status}</span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
