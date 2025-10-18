@@ -2,19 +2,43 @@
   "xsappname": "maintenance-manager",
   "tenant-mode": "dedicated",
   "scopes": [
-    { "name": "$XSAPPNAME.User", "description": "Acceso básico a la aplicación" },
-    { "name": "$XSAPPNAME.Admin", "description": "Permisos administrativos" }
+    {
+      "name": "$XSAPPNAME.User",
+      "description": "Acceso básico a la aplicación"
+    },
+    {
+      "name": "$XSAPPNAME.Admin",
+      "description": "Permisos administrativos"
+    },
+    {
+      "name": "$XSAPPNAME.REQUESTER",
+      "description": "REQUESTER"
+    },
+    {
+      "name": "$XSAPPNAME.TECH",
+      "description": "TECH"
+    },
+    {
+      "name": "$XSAPPNAME.MANAGER",
+      "description": "MANAGER"
+    }
   ],
   "role-templates": [
     {
       "name": "User",
       "description": "Usuario estándar",
-      "scope-references": ["$XSAPPNAME.User"]
+      "scope-references": [
+        "$XSAPPNAME.User"
+      ]
     },
     {
       "name": "Admin",
       "description": "Administrador",
-      "scope-references": ["$XSAPPNAME.User", "$XSAPPNAME.Admin"]
+      "scope-references": [
+        "$XSAPPNAME.User",
+        "$XSAPPNAME.Admin"
+      ]
     }
-  ]
+  ],
+  "attributes": []
 }

@@ -1,0 +1,35 @@
+{
+  "VCAP_SERVICES": {
+    "xsuaa": [
+      {
+        "label": "xsuaa",
+        "provider": null,
+        "plan": "application",
+        "name": "uaa_maintenance",
+        "tags": [
+          "xsuaa"
+        ],
+        "instance_guid": "local-test-instance",
+        "instance_name": "uaa_maintenance",
+        "binding_guid": "local-test-binding",
+        "binding_name": null,
+        "credentials": {
+          "apiurl": "http://localhost:8080/uaa-security",
+          "clientid": "sb-maintenance-manager",
+          "clientsecret": "secret",
+          "identityzone": "uaa",
+          "identityzoneid": "uaa",
+          "sburl": "http://localhost:8080/uaa/oauth/token",
+          "tenantid": "local-test-tenant",
+          "tenantmode": "dedicated",
+          "uaadomain": "localhost:8080",
+          "url": "http://localhost:8080/uaa",
+          "verificationkey": "local-test-key",
+          "xsappname": "maintenance-manager"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ]
+  }
+}

@@ -1,41 +1,43 @@
 using { mm as db } from '../db/schema';
 
+@requires: 'authenticated-user'
 service MaintenanceService @(path: '/maintenance') {
-    @readonly entity Users as projection on db.Users {
+    @readonly 
+    @restrict: [
+        { grant: 'READ', to: 'authenticated-user' }
+    ]
+    entity Users as projection on db.Users {
         *,
         requests: redirected to MaintenanceRequests,
         assignments: redirected to MaintenanceRequests
     };
     
-    @readonly entity Assets as projection on db.Assets {
+    @readonly 
+    @restrict: [
+        { grant: 'READ', to: 'authenticated-user' }
+    ]
+    entity Assets as projection on db.Assets {
         *,
         requests: redirected to MaintenanceRequests
     };
     
+    @restrict: [
+        { grant: ['READ'], to: 'User' },
+        { grant: ['CREATE'], to: 'User' },
+        { grant: ['UPDATE', 'assign', 'updateStatus'], to: 'Tech' },
+        { grant: ['DELETE', 'updatePriority'], to: 'Admin' }
+    ]
     entity MaintenanceRequests as projection on db.MaintenanceRequests {
         *,
         requestedBy.name as requesterName : String,
         assignedTo.name as technicianName : String,
         asset.code as assetCode : String
     } actions {
+        @(restrict: [{ to: 'Tech' }])
         action assign(technicianId: UUID);
+        @(restrict: [{ to: 'Tech' }])
         action updateStatus(newStatus: db.Status);
+        @(restrict: [{ to: 'Admin' }])
         action updatePriority(newPriority: Integer);
     };
 }
-
-// Roles and Authorization
-annotate MaintenanceService.MaintenanceRequests with @(restrict: [
-    { grant: ['READ'], to: ['REQUESTER', 'TECH', 'MANAGER'] },
-    { grant: ['CREATE'], to: ['REQUESTER', 'MANAGER'] },
-    { grant: ['UPDATE'], to: ['TECH', 'MANAGER'] },
-    { grant: ['DELETE'], to: ['MANAGER'] }
-]);
-
-annotate MaintenanceService.Users with @(restrict: [
-    { grant: ['READ'], to: ['REQUESTER', 'TECH', 'MANAGER'] }
-]);
-
-annotate MaintenanceService.Assets with @(restrict: [
-    { grant: ['READ'], to: ['REQUESTER', 'TECH', 'MANAGER'] }
-]);

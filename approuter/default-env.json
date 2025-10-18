@@ -1,0 +1,34 @@
+{
+  "VCAP_SERVICES": {
+    "xsuaa": [{
+      "name": "uaa_maintenance",
+      "label": "xsuaa",
+      "tags": ["xsuaa"],
+      "plan": "application",
+      "credentials": {
+        "tenantmode": "dedicated",
+        "sburl": "http://localhost:8080/uaa/oauth/token",
+        "clientid": "sb-maintenance-manager",
+        "clientsecret": "secret",
+        "url": "http://localhost:8080/uaa",
+        "uaadomain": "localhost:8080",
+        "verificationkey": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw+4pzn4jCriT7Zb1kV/1oJr3N5CBrlbUOjVA6kHoOG9E6Zr/IZrbiGm3v7lay0IAZxJ95OLxQFgzXweU6iCj5c6VPGAeKSe4c9qZtH4JYOy0qvFrMzyKOB6H2I5vTHIz5t+Opn74W4vTvOZ6z9BC0cEjm1Qr9HJLio5ciYvK8i4wWBxqPhvrBCZ8yTtbVvV2G6r1/PRqfaup78tUAs6o1c4dBv7+CMzMid+RZi/Ij18EPZdZrwnq1kWu1LOOJxF1qn2eH6MpZgJktZMXGIp9n2YQ2MEZt+11KQ0qDwbYBrYM0QWq0DRE58hXxxHzrnTFLvFHClN6rMCLHKFJu0CbIwIDAQAB-----END PUBLIC KEY-----",
+        "xsappname": "maintenance-manager",
+        "identityzone": "uaa",
+        "identityzoneid": "uaa"
+      }
+    }]
+  },
+  "VCAP_APPLICATION": {
+    "start_timeout": 600,
+    "state_timeout": 180,
+    "application_name": "maintenance-approuter",
+    "space_name": "development",
+    "organization_name": "MyOrg"
+  },
+  "destinations": [{
+    "name": "srv-api",
+    "url": "http://localhost:4004",
+    "forwardAuthToken": true
+  }]
+}
