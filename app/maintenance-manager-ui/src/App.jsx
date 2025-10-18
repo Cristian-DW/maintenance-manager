@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Layout from "./components/Layout";
-import RequestForm from "./components/RequestForm";
-import RequestList from "./components/RequestList";
+import Layout from "./assets/components/layout";
+import RequestForm from "./assets/components/RequestForm";
+import RequestList from "./assets/components/RequestList";
 
 export default function App() {
   const [reload, setReload] = useState(false);

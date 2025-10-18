@@ -26,9 +26,36 @@
     "space_name": "development",
     "organization_name": "MyOrg"
   },
-  "destinations": [{
-    "name": "srv-api",
-    "url": "http://localhost:4004",
-    "forwardAuthToken": true
-  }]
+  "destinations": [
+    {
+      "name": "srv-api",
+      "url": "http://localhost:4004",
+      "forwardAuthToken": true
+    },
+    {
+      "name": "maintenance-ui",
+      "url": "http://localhost:5173",
+      "forwardAuthToken": true
+    }
+  ],
+  "cds": {
+    "security": {
+      "mock": {
+        "users": {
+          "user": {
+            "password": "user",
+            "roles": ["User"]
+          },
+          "tech": {
+            "password": "tech",
+            "roles": ["Tech"]
+          },
+          "admin": {
+            "password": "admin",
+            "roles": ["Admin"]
+          }
+        }
+      }
+    }
+  }
 }

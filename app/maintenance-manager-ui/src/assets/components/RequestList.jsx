@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../api";
-import { Card, CardContent } from "./ui/card";
+import api from "../../api";
+import { Card, CardContent } from "";
 
 export default function RequestList() {
   const [requests, setRequests] = useState([]);

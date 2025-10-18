@@ -1,11 +1,22 @@
 {
   "welcomeFile": "index.html",
   "authenticationMethod": "route",
+  "logout": {
+    "logoutEndpoint": "/do/logout",
+    "logoutPage": "/index.html"
+  },
   "routes": [
     {
       "source": "^/maintenance/(.*)$",
       "target": "/maintenance/$1",
       "destination": "srv-api",
+      "authenticationType": "xsuaa",
+      "csrfProtection": true
+    },
+    {
+      "source": "^/app/(.*)$",
+      "target": "$1",
+      "destination": "maintenance-ui",
       "authenticationType": "xsuaa",
       "csrfProtection": true
     },
