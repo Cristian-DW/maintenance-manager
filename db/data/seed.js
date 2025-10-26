@@ -1,7 +1,7 @@
 const cds = require('@sap/cds');
 
-async function seed() {
-    const db = await cds.connect.to('db');
+async function seed(passedDb) {
+    const db = passedDb || await cds.connect.to('db');
     const { Users, Assets, MaintenanceRequests } = db.entities;
 
     // Create test users

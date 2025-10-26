@@ -60,8 +60,5 @@ export default {
       },
     },
   },
-  plugins: [
-    import('@headlessui/tailwindcss'),
-    import('@tailwindcss/forms'),
-  ],
+  plugins: [],
 }

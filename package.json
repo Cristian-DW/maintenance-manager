@@ -15,7 +15,7 @@
     "test": "jest",
     "lint": "eslint .",
     "db:init": "cds deploy --to sqlite:maintenance.db",
-    "db:seed": "cds run db/data/seed.js",
+    "db:seed": "node ./db/data/seed.js",
     "clean": "rimraf dist gen node_modules */*/node_modules"
  },
  "dependencies": {
