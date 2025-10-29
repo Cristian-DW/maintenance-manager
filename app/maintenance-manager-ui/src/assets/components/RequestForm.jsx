@@ -23,11 +23,23 @@ export default function RequestForm({ onCreated, open, onClose }) {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('MaintenanceRequests', form);
+      const payload = {
+        title: form.title,
+        description: form.description,
+        priority: parseInt(form.priority),
+        status: 'OPEN',
+        asset_ID: form.assetCode // Asumiendo que assetCode es el ID del activo
+      };
+      
+      const response = await api.post('/MaintenanceRequests', payload);
+      console.log('Solicitud creada:', response.data);
       onCreated();
       onClose();
     } catch (error) {
       console.error('Error creating request:', error);
+      if (error.response) {
+        console.error('Error details:', error.response.data);
+      }
     } finally {
       setLoading(false);
     }
