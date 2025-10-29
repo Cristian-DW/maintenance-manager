@@ -22,10 +22,22 @@ const statusClasses = {
 
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const load = async () => {
-    const res = await api.get("MaintenanceRequests");
-    setRequests(res.data.value);
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.get("/MaintenanceRequests");
+      console.log('API Response:', res.data);
+      setRequests(res.data.value || []);
+    } catch (err) {
+      console.error('Error loading requests:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
