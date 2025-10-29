@@ -3,9 +3,6 @@ using { mm as db } from '../db/schema';
 @requires: 'authenticated-user'
 service MaintenanceService @(path: '/maintenance') {
     @readonly 
-    @restrict: [
-        { grant: 'READ', to: 'authenticated-user' }
-    ]
     entity Users as projection on db.Users {
         *,
         requests: redirected to MaintenanceRequests,
@@ -13,17 +10,13 @@ service MaintenanceService @(path: '/maintenance') {
     };
     
     @readonly 
-    @restrict: [
-        { grant: 'READ', to: 'authenticated-user' }
-    ]
     entity Assets as projection on db.Assets {
         *,
         requests: redirected to MaintenanceRequests
     };
     
     @restrict: [
-        { grant: ['READ'], to: 'User' },
-        { grant: ['CREATE'], to: 'User' },
+        { grant: ['READ', 'CREATE'], to: 'authenticated-user' },
         { grant: ['UPDATE', 'assign', 'updateStatus'], to: 'Tech' },
         { grant: ['DELETE', 'updatePriority'], to: 'Admin' }
     ]
