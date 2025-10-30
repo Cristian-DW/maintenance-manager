@@ -11,12 +11,13 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
+import { Link } from 'react-router-dom';
+
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Maintenance Requests', href: '/requests', icon: ClipboardDocumentListIcon },
-  { name: 'Assets', href: '/assets', icon: WrenchIcon },
-  { name: 'Team', href: '/team', icon: UserGroupIcon },
-  { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+  { name: 'Panel de Control', href: '/', icon: HomeIcon },
+  { name: 'Solicitudes', href: '/requests', icon: ClipboardDocumentListIcon },
+  { name: 'Activos', href: '/assets', icon: WrenchIcon },
+  { name: 'Usuarios', href: '/users', icon: UserGroupIcon },
 ];
 
 export default function Layout({ children }) {
@@ -54,6 +55,7 @@ export default function Layout({ children }) {
                     key={item.name}
                     to={item.href}
                     className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    onClick={() => setSidebarOpen(false)}
                   >
                     <item.icon className="h-6 w-6 mr-3 text-gray-400" aria-hidden="true" />
                     {item.name}
