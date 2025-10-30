@@ -5,7 +5,10 @@
   "scripts": {
     "start": "cds run",
     "watch": "cds watch",
-    "build": "cds build/all"
+    "build": "cds build/all",
+    "serve:backend": "cds watch",
+    "serve:frontend": "cd app/maintenance-manager-ui && npm run dev",
+    "serve:all": "concurrently \"npm run serve:backend\" \"npm run serve:frontend\""
   },
   "dependencies": {
     "@sap/cds": "^9.3.1",
@@ -14,15 +17,16 @@
   "engines": {
     "node": ">=18"
   },
- "cds": {
-  "requires": {
-    "db": {
-      "kind": "sqlite",
-      "model": "db/"
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "model": "db/"
+      }
     }
-  }
-},
+  },
   "devDependencies": {
-    "@cap-js/sqlite": "^2.0.3"
+    "@cap-js/sqlite": "^2.0.3",
+    "concurrently": "^9.2.1"
   }
 }

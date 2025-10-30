@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+import forms from '@tailwindcss/forms'
+import headlessui from '@headlessui/tailwindcss'
+
 export default {
   content: [
     "./index.html",
@@ -60,8 +63,5 @@ export default {
       },
     },
   },
-  plugins: [
-    import('@headlessui/tailwindcss'),
-    import('@tailwindcss/forms'),
-  ],
+  plugins: [forms, headlessui],
 }
