@@ -20,13 +20,31 @@ const statusClasses = {
   DONE: 'text-green-700 bg-green-50 ring-green-600/20',
 };
 
+import RequestForm from './RequestForm';
+
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.get("/MaintenanceRequests");
+      console.log('API Response:', res.data);
+      setRequests(res.data.value || []);
+    } catch (err) {
+      console.error('Error loading requests:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    api.get('MaintenanceRequests').then((res) => {
-      setRequests(res.data.value);
-    });
+    load();
   }, []);
 
   return (
@@ -42,6 +60,7 @@ export default function RequestList() {
           <button
             type="button"
             className="btn btn-primary"
+            onClick={() => setIsFormOpen(true)}
           >
             Nueva Solicitud
           </button>
@@ -129,10 +148,29 @@ export default function RequestList() {
                   })}
                 </tbody>
               </table>
+              {loading && (
+                <div className="flex justify-center items-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                </div>
+              )}
+              {error && (
+                <div className="p-4 text-red-700 bg-red-100 rounded-lg">
+                  <p>{error}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <RequestForm
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onCreated={() => {
+          setIsFormOpen(false);
+          load();
+        }}
+      />
     </div>
   );
 }

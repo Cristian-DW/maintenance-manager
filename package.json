@@ -1,8 +1,8 @@
 {
-  "name": "maintenance-manager",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
+ "name": "maintenance-manager",
+ "version": "0.1.0",
+ "private": true,
+ "scripts": {
     "start": "cds run",
     "watch": "cds watch",
     "build": "cds build/all",
@@ -29,4 +29,13 @@
     "@cap-js/sqlite": "^2.0.3",
     "concurrently": "^9.2.1"
   }
+ },
+ "devDependencies": {
+    "@cap-js/sqlite": "^2.0.3",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.5",
+    "supertest": "^6.3.3"
+ }
 }

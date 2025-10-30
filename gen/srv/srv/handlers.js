@@ -1,25 +1,23 @@
 const cds = require('@sap/cds');
-const { validateRequest } = require('./validation');
 
 module.exports = cds.service.impl(function () {
     const { MaintenanceRequests, Users } = this.entities;
     const { UPDATE, SELECT } = cds.ql;
 
-    // Middleware para actualizar timestamps y validación
+    // Middleware para actualizar timestamps
     this.before(['CREATE', 'UPDATE'], 'MaintenanceRequests', async (req) => {
-        // Validar los datos de entrada
-        try {
-            validateRequest('MaintenanceRequest', req.data);
-        } catch (error) {
-            return req.reject(400, error.message, error.details);
-        }
-
-        // Actualizar timestamps
         if (req.event === 'CREATE') {
             req.data.createdAt = new Date().toISOString();
             req.data.status = 'OPEN';
         }
         req.data.updatedAt = new Date().toISOString();
+    });
+
+    // Validaciones
+    this.before(['CREATE', 'UPDATE'], 'MaintenanceRequests', async (req) => {
+        if (req.data.priority && (req.data.priority < 1 || req.data.priority > 3)) {
+            return req.reject(400, 'Priority must be between 1 and 3');
+        }
     });
 
     // Handler para asignar técnico

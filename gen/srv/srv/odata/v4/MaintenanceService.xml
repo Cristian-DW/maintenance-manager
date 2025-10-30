@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.xml">
+    <edmx:Include Alias="Capabilities" Namespace="Org.OData.Capabilities.V1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+    <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Validation.V1.xml">
+    <edmx:Include Alias="Validation" Namespace="Org.OData.Validation.V1"/>
+  </edmx:Reference>
+  <edmx:DataServices>
+    <Schema Namespace="MaintenanceService" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <Annotation Term="Core.Links">
+        <Collection>
+          <Record>
+            <PropertyValue Property="rel" String="author"/>
+            <PropertyValue Property="href" String="https://cap.cloud.sap"/>
+          </Record>
+        </Collection>
+      </Annotation>
+      <EntityContainer Name="EntityContainer">
+        <EntitySet Name="Users" EntityType="MaintenanceService.Users">
+          <NavigationPropertyBinding Path="requests" Target="MaintenanceRequests"/>
+          <NavigationPropertyBinding Path="assignments" Target="MaintenanceRequests"/>
+        </EntitySet>
+        <EntitySet Name="Assets" EntityType="MaintenanceService.Assets">
+          <NavigationPropertyBinding Path="requests" Target="MaintenanceRequests"/>
+        </EntitySet>
+        <EntitySet Name="MaintenanceRequests" EntityType="MaintenanceService.MaintenanceRequests">
+          <NavigationPropertyBinding Path="requestedBy" Target="Users"/>
+          <NavigationPropertyBinding Path="assignedTo" Target="Users"/>
+          <NavigationPropertyBinding Path="asset" Target="Assets"/>
+        </EntitySet>
+      </EntityContainer>
+      <EntityType Name="Users">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="name" Type="Edm.String" MaxLength="100"/>
+        <Property Name="email" Type="Edm.String" MaxLength="200"/>
+        <Property Name="role" Type="Edm.String" MaxLength="30"/>
+        <NavigationProperty Name="requests" Type="Collection(MaintenanceService.MaintenanceRequests)" Partner="requestedBy"/>
+        <NavigationProperty Name="assignments" Type="Collection(MaintenanceService.MaintenanceRequests)" Partner="assignedTo"/>
+      </EntityType>
+      <EntityType Name="Assets">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="code" Type="Edm.String" MaxLength="50"/>
+        <Property Name="location" Type="Edm.String" MaxLength="200"/>
+        <Property Name="info" Type="Edm.String"/>
+        <NavigationProperty Name="requests" Type="Collection(MaintenanceService.MaintenanceRequests)" Partner="asset"/>
+      </EntityType>
+      <EntityType Name="MaintenanceRequests">
+        <Key>
+          <PropertyRef Name="ID"/>
+        </Key>
+        <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+        <Property Name="title" Type="Edm.String" MaxLength="200"/>
+        <Property Name="description" Type="Edm.String"/>
+        <Property Name="status" Type="Edm.String" MaxLength="20" DefaultValue="OPEN"/>
+        <Property Name="priority" Type="Edm.Int32" DefaultValue="1"/>
+        <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+        <Property Name="updatedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+        <NavigationProperty Name="requestedBy" Type="MaintenanceService.Users" Partner="requests">
+          <ReferentialConstraint Property="requestedBy_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="requestedBy_ID" Type="Edm.Guid"/>
+        <NavigationProperty Name="assignedTo" Type="MaintenanceService.Users" Partner="assignments">
+          <ReferentialConstraint Property="assignedTo_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="assignedTo_ID" Type="Edm.Guid"/>
+        <NavigationProperty Name="asset" Type="MaintenanceService.Assets" Partner="requests">
+          <ReferentialConstraint Property="asset_ID" ReferencedProperty="ID"/>
+        </NavigationProperty>
+        <Property Name="asset_ID" Type="Edm.Guid"/>
+        <Property Name="requesterName" Type="Edm.String"/>
+        <Property Name="technicianName" Type="Edm.String"/>
+        <Property Name="assetCode" Type="Edm.String"/>
+      </EntityType>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="in" Type="MaintenanceService.MaintenanceRequests"/>
+        <Parameter Name="technicianId" Type="Edm.Guid"/>
+      </Action>
+      <Action Name="updateStatus" IsBound="true">
+        <Parameter Name="in" Type="MaintenanceService.MaintenanceRequests"/>
+        <Parameter Name="newStatus" Type="Edm.String" MaxLength="20"/>
+      </Action>
+      <Action Name="updatePriority" IsBound="true">
+        <Parameter Name="in" Type="MaintenanceService.MaintenanceRequests"/>
+        <Parameter Name="newPriority" Type="Edm.Int32"/>
+      </Action>
+      <Annotations Target="MaintenanceService.EntityContainer/Users">
+        <Annotation Term="Capabilities.DeleteRestrictions">
+          <Record Type="Capabilities.DeleteRestrictionsType">
+            <PropertyValue Property="Deletable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.InsertRestrictions">
+          <Record Type="Capabilities.InsertRestrictionsType">
+            <PropertyValue Property="Insertable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.UpdateRestrictions">
+          <Record Type="Capabilities.UpdateRestrictionsType">
+            <PropertyValue Property="Updatable" Bool="false"/>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Users/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Users/name">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Users/email">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Users/role">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+        <Annotation Term="Validation.AllowedValues">
+          <Collection>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="REQUESTER"/>
+              <PropertyValue Property="Value" String="REQUESTER"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="TECH"/>
+              <PropertyValue Property="Value" String="TECH"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="MANAGER"/>
+              <PropertyValue Property="Value" String="MANAGER"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="MaintenanceService.EntityContainer/Assets">
+        <Annotation Term="Capabilities.DeleteRestrictions">
+          <Record Type="Capabilities.DeleteRestrictionsType">
+            <PropertyValue Property="Deletable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.InsertRestrictions">
+          <Record Type="Capabilities.InsertRestrictionsType">
+            <PropertyValue Property="Insertable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.UpdateRestrictions">
+          <Record Type="Capabilities.UpdateRestrictionsType">
+            <PropertyValue Property="Updatable" Bool="false"/>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Assets/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Assets/code">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.Assets/location">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.MaintenanceRequests/ID">
+        <Annotation Term="Core.ComputedDefaultValue" Bool="true"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.MaintenanceRequests/title">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.MaintenanceRequests/status">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+        <Annotation Term="Validation.AllowedValues">
+          <Collection>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="OPEN"/>
+              <PropertyValue Property="Value" String="OPEN"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="ASSIGNED"/>
+              <PropertyValue Property="Value" String="ASSIGNED"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="IN_PROGRESS"/>
+              <PropertyValue Property="Value" String="IN_PROGRESS"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="DONE"/>
+              <PropertyValue Property="Value" String="DONE"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="CLOSED"/>
+              <PropertyValue Property="Value" String="CLOSED"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="MaintenanceService.MaintenanceRequests/priority">
+        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.MaintenanceRequests/createdAt">
+        <Annotation Term="Core.Computed" Bool="true"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.MaintenanceRequests/updatedAt">
+        <Annotation Term="Core.Computed" Bool="true"/>
+      </Annotations>
+      <Annotations Target="MaintenanceService.updateStatus(MaintenanceService.MaintenanceRequests)/newStatus">
+        <Annotation Term="Validation.AllowedValues">
+          <Collection>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="OPEN"/>
+              <PropertyValue Property="Value" String="OPEN"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="ASSIGNED"/>
+              <PropertyValue Property="Value" String="ASSIGNED"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="IN_PROGRESS"/>
+              <PropertyValue Property="Value" String="IN_PROGRESS"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="DONE"/>
+              <PropertyValue Property="Value" String="DONE"/>
+            </Record>
+            <Record Type="Validation.AllowedValue">
+              <Annotation Term="Core.SymbolicName" String="CLOSED"/>
+              <PropertyValue Property="Value" String="CLOSED"/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
