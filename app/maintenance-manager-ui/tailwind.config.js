@@ -64,5 +64,15 @@ export default {
       },
     },
   },
+<<<<<<< HEAD
   plugins: [forms, headlessui],
+=======
+<<<<<<< HEAD
+  plugins: [
+    import('@tailwindcss/forms'),
+  ],
+=======
+  plugins: [forms, headlessui],
+>>>>>>> 7b618d5 (feat: :sparkles: configure Tailwind plugins and build metrics dashboard)
+>>>>>>> e159119 (feat: :sparkles: configure Tailwind plugins and build metrics dashboard)
 }
