@@ -10,12 +10,13 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
+import { Link } from 'react-router-dom';
+
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Maintenance Requests', href: '/requests', icon: ClipboardDocumentListIcon },
-  { name: 'Assets', href: '/assets', icon: WrenchIcon },
-  { name: 'Team', href: '/team', icon: UserGroupIcon },
-  { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+  { name: 'Panel de Control', href: '/', icon: HomeIcon },
+  { name: 'Solicitudes', href: '/requests', icon: ClipboardDocumentListIcon },
+  { name: 'Activos', href: '/assets', icon: WrenchIcon },
+  { name: 'Usuarios', href: '/users', icon: UserGroupIcon },
 ];
 
 export default function Layout({ children }) {
@@ -49,14 +50,15 @@ export default function Layout({ children }) {
             <div className="-my-6 divide-y divide-gray-500/10">
               <div className="space-y-2 py-6">
                 {navigation.map((item) => (
-                  <a
+                  <Link
                     key={item.name}
-                    href={item.href}
+                    to={item.href}
                     className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    onClick={() => setSidebarOpen(false)}
                   >
                     <item.icon className="h-6 w-6 mr-3 text-gray-400" aria-hidden="true" />
                     {item.name}
-                  </a>
+                  </Link>
                 ))}
               </div>
               <div className="py-6">
@@ -96,13 +98,13 @@ export default function Layout({ children }) {
                 <ul role="list" className="-mx-2 space-y-1">
                   {navigation.map((item) => (
                     <li key={item.name}>
-                      <a
-                        href={item.href}
+                      <Link
+                        to={item.href}
                         className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-primary-600 hover:bg-gray-50"
                       >
                         <item.icon className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-primary-600" aria-hidden="true" />
                         {item.name}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
