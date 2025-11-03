@@ -43,6 +43,7 @@ export default function RequestList() {
     }
   };
 
+  // Cargar las solicitudes al montar el componente y cuando se crea una nueva
   useEffect(() => {
     load();
   }, []);

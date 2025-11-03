@@ -23,22 +23,53 @@ export default function RequestForm({ onCreated, open, onClose }) {
     e.preventDefault();
     setLoading(true);
     try {
+      // Primero obtenemos el ID del activo basado en el código
+      let assetId = null;
+      try {
+        const assetsResponse = await api.get(`/Assets?$filter=code eq '${form.assetCode}'`);
+        if (assetsResponse.data.value && assetsResponse.data.value.length > 0) {
+          assetId = assetsResponse.data.value[0].ID;
+        } else {
+          throw new Error('Asset not found');
+        }
+      } catch (assetError) {
+        console.error('Error finding asset:', assetError);
+        throw new Error('No se encontró el activo con el código proporcionado');
+      }
+
       const payload = {
         title: form.title,
         description: form.description,
         priority: parseInt(form.priority),
         status: 'OPEN',
-        asset_ID: form.assetCode // Asumiendo que assetCode es el ID del activo
+        asset_ID: assetId,
+        assetCode: form.assetCode,
+        assetLocation: form.assetLocation
       };
       
       const response = await api.post('/MaintenanceRequests', payload);
       console.log('Solicitud creada:', response.data);
-      onCreated();
+      
+      // Limpiar el formulario
+      setForm({
+        title: '',
+        description: '',
+        priority: '2',
+        assignedTo: '',
+        assetCode: '',
+        assetLocation: ''
+      });
+
+      // Notificar que se creó la solicitud y cerrar el modal
+      if (typeof onCreated === 'function') onCreated();
       onClose();
     } catch (error) {
       console.error('Error creating request:', error);
       if (error.response) {
         console.error('Error details:', error.response.data);
+        alert(`Error al crear la solicitud: ${error.response.data.error?.message || 'Error desconocido'}`);
+      } else {
+        alert(error.message || 'Error al crear la solicitud');
       }
     } finally {
       setLoading(false);
