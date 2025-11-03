@@ -11,8 +11,6 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
-import { Link } from 'react-router-dom';
-
 const navigation = [
   { name: 'Panel de Control', href: '/', icon: HomeIcon },
   { name: 'Solicitudes', href: '/requests', icon: ClipboardDocumentListIcon },
