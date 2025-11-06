@@ -32,12 +32,36 @@ export default function RequestList() {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching requests from:', 'http://localhost:4004/maintenance/MaintenanceRequests');
       const res = await api.get("/MaintenanceRequests");
-      console.log('API Response:', res.data);
-      setRequests(res.data.value || []);
+      console.log('API Response:', res);
+      console.log('Response data:', res.data);
+      
+      // Handle OData response format
+      const requestsData = res.data?.value || res.data || [];
+      console.log('Parsed requests:', requestsData);
+      setRequests(Array.isArray(requestsData) ? requestsData : []);
     } catch (err) {
       console.error('Error loading requests:', err);
-      setError(err.message);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        config: err.config
+      });
+      
+      let errorMessage = 'Error al cargar las solicitudes';
+      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        errorMessage = 'Error de conexión. Verifica que el servidor backend esté corriendo en http://localhost:4004';
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Error de autenticación. Verifica las credenciales.';
+      } else if (err.response?.data?.error?.message) {
+        errorMessage = err.response.data.error.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -95,17 +119,23 @@ export default function RequestList() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {requests.map((request) => {
-                    const StatusIcon = statusIcons[request.status] || ClockIcon;
-                    return (
-                      <tr key={request.ID} className="hover:bg-gray-50">
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <div className="font-medium text-gray-900">{request.title}</div>
-                          <div className="text-gray-500">{request.description}</div>
-                        </td>
+                  {requests.length === 0 && !loading ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                        No hay solicitudes de mantenimiento
+                      </td>
+                    </tr>
+                  ) : (
+                    requests.map((request) => {
+                      const StatusIcon = statusIcons[request.status] || ClockIcon;
+                      return (
+                        <tr key={request.ID} className="hover:bg-gray-50">
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                            <div className="font-medium text-gray-900">{request.title || 'Sin título'}</div>
+                            <div className="text-gray-500">{request.description || ''}</div>
+                          </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <div className="font-medium text-gray-900">{request.assetCode}</div>
-                          <div className="text-gray-500">{request.assetLocation}</div>
+                          <div className="font-medium text-gray-900">{request.assetCode || 'N/A'}</div>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusClasses[request.status]}`}>
@@ -119,17 +149,17 @@ export default function RequestList() {
                           </span>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {request.assignedTo ? (
+                          {request.technicianName ? (
                             <div className="flex items-center">
                               <div className="h-8 w-8 flex-shrink-0">
                                 <img 
                                   className="h-8 w-8 rounded-full" 
-                                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(request.assignedTo)}&background=random`} 
+                                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(request.technicianName)}&background=random`} 
                                   alt="" 
                                 />
                               </div>
                               <div className="ml-4">
-                                <div className="font-medium text-gray-900">{request.assignedTo}</div>
+                                <div className="font-medium text-gray-900">{request.technicianName}</div>
                               </div>
                             </div>
                           ) : (
@@ -146,17 +176,26 @@ export default function RequestList() {
                         </td>
                       </tr>
                     );
-                  })}
+                    })
+                  )}
                 </tbody>
               </table>
               {loading && (
                 <div className="flex justify-center items-center p-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <span className="ml-3 text-gray-600">Cargando solicitudes...</span>
                 </div>
               )}
-              {error && (
-                <div className="p-4 text-red-700 bg-red-100 rounded-lg">
-                  <p>{error}</p>
+              {error && !loading && (
+                <div className="mt-4 p-4 text-red-700 bg-red-100 rounded-lg border border-red-300">
+                  <p className="font-medium">Error al cargar las solicitudes</p>
+                  <p className="text-sm mt-1">{error}</p>
+                  <button
+                    onClick={load}
+                    className="mt-2 text-sm text-red-700 hover:text-red-900 underline"
+                  >
+                    Reintentar
+                  </button>
                 </div>
               )}
             </div>

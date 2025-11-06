@@ -21,6 +21,8 @@ export default function App() {
     setReload(!reload);
   };
 
+  console.log('App component rendered');
+
   return (
     <Router>
       <Layout 

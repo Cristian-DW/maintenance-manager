@@ -34,7 +34,6 @@ export default function Layout({ children }) {
         <Dialog.Panel className="fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto bg-white px-4 pb-6 pt-5 sm:max-w-sm sm:px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <img className="h-8 w-auto" src="/logo.svg" alt="Maintenance Manager" />
               <span className="text-xl font-semibold text-gray-900">Maintenance Manager</span>
             </div>
             <button
@@ -88,8 +87,7 @@ export default function Layout({ children }) {
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
-            <img className="h-8 w-auto" src="/logo.svg" alt="Maintenance Manager" />
-            <span className="ml-2 text-xl font-semibold text-gray-900">Maintenance Manager</span>
+            <span className="text-xl font-semibold text-gray-900">Maintenance Manager</span>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">

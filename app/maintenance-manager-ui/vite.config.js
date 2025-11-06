@@ -6,11 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174,
+    strictPort: true,
     hmr: {
       overlay: false
     }
   },
   css: {
-    postcss: './postcss.config.js'
+    postcss: './postcss.config.cjs'
   }
 })

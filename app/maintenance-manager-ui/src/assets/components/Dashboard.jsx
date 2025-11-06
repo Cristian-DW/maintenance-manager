@@ -55,9 +55,11 @@ export default function Dashboard() {
           api.get('/Users'),
         ]);
 
-        const requests = requestsRes.data.value || [];
-        const assets = assetsRes.data.value || [];
-        const users = usersRes.data.value || [];
+        console.log('Dashboard API responses:', { requestsRes, assetsRes, usersRes });
+
+        const requests = requestsRes.data?.value || requestsRes.data || [];
+        const assets = assetsRes.data?.value || assetsRes.data || [];
+        const users = usersRes.data?.value || usersRes.data || [];
 
         // Calcular estadísticas
         const openRequests = requests.filter(r => r.status === 'OPEN').length;
@@ -90,6 +92,12 @@ export default function Dashboard() {
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: error.config
+        });
       }
     };
 

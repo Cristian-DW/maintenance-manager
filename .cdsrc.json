@@ -1,29 +1,7 @@
 {
-  "auth": {
-    "passport": {
-      "strategy": "mock",
-      "users": {
-        "admin": {
-          "password": "admin",
-          "roles": ["Admin"]
-        },
-        "tech": {
-          "password": "tech",
-          "roles": ["Tech"]
-        },
-        "user": {
-          "password": "user",
-          "roles": ["User"]
-        }
-      }
-    }
-  },
   "requires": {
     "db": {
-      "kind": "sqlite",
-      "credentials": {
-        "database": "db/sqlite.db"
-      }
+      "kind": "sqlite"
     }
   }
 }
