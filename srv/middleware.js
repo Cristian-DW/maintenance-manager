@@ -32,7 +32,7 @@ module.exports = async (srv) => {
         _roles: ['authenticated-user', 'User', 'Tech'],
         roles: ['authenticated-user', 'User', 'Tech'],
         attr: {
-          email: 'test@example.com'
+          email: 'requester@example.com' // Email del usuario requester que existe en la BD
         }
       };
     }

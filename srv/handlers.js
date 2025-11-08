@@ -14,10 +14,44 @@ module.exports = cds.service.impl(function () {
             return req.reject(400, error.message, error.details);
         }
 
-        // Actualizar timestamps
+        // Para CREATE, obtener o establecer el usuario que hace la solicitud
         if (req.event === 'CREATE') {
+            // Si no se proporciona requestedBy_ID, buscar por email del usuario autenticado
+            if (!req.data.requestedBy_ID) {
+                const userEmail = req.user?.attr?.email || req.user?.email || 'requester@example.com';
+                
+                try {
+                    // Buscar el usuario en la base de datos
+                    // Intentamos usar la entidad del servicio primero
+                    const user = await SELECT.one.from(Users).where({ email: userEmail });
+                    if (user && user.ID) {
+                        req.data.requestedBy_ID = user.ID;
+                        console.log(`Found user ${user.ID} for email ${userEmail}`);
+                    } else {
+                        // Si no se encuentra, usar el usuario requester por defecto (ID: '3')
+                        req.data.requestedBy_ID = '3';
+                        console.log(`User not found for email ${userEmail}, using default requester (ID: 3)`);
+                    }
+                } catch (error) {
+                    console.warn('Error finding user, using default requester:', error.message);
+                    // Usar el usuario requester por defecto (ID: '3') - esto asegura que siempre haya un usuario
+                    req.data.requestedBy_ID = '3';
+                }
+            }
+
+            // Remover campos que no existen en el schema (assetCode, assetLocation)
+            delete req.data.assetCode;
+            delete req.data.assetLocation;
+            
             req.data.createdAt = new Date().toISOString();
-            req.data.status = 'OPEN';
+            req.data.status = req.data.status || 'OPEN';
+            
+            console.log('Creating maintenance request with data:', {
+                title: req.data.title,
+                asset_ID: req.data.asset_ID,
+                requestedBy_ID: req.data.requestedBy_ID,
+                priority: req.data.priority
+            });
         }
         req.data.updatedAt = new Date().toISOString();
     });

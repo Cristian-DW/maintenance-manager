@@ -41,10 +41,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
         title: form.title,
         description: form.description,
         priority: parseInt(form.priority),
-        status: 'OPEN',
-        asset_ID: assetId,
-        assetCode: form.assetCode,
-        assetLocation: form.assetLocation
+        asset_ID: assetId
       };
       
       const response = await api.post('/MaintenanceRequests', payload);

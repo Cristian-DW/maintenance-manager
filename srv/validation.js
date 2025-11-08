@@ -5,12 +5,11 @@ const validator = new Validator({
     title: {
       required: true,
       type: 'string',
-      maxLength: 100
+      maxLength: 200
     },
     description: {
-      required: true,
-      type: 'string',
-      maxLength: 1000
+      required: false,
+      type: 'string'
     },
     priority: {
       required: true,
@@ -18,18 +17,24 @@ const validator = new Validator({
       min: 1,
       max: 3
     },
-    assetCode: {
+    asset_ID: {
       required: true,
       type: 'string',
-      maxLength: 50
+      format: 'uuid'
     },
-    assetLocation: {
-      type: 'string',
-      maxLength: 200
-    },
-    assignedTo: {
+    requestedBy_ID: {
+      required: false, // Se asignará automáticamente en el handler
       type: 'string',
       format: 'uuid'
+    },
+    assignedTo_ID: {
+      required: false,
+      type: 'string',
+      format: 'uuid'
+    },
+    status: {
+      required: false, // Se establecerá automáticamente
+      type: 'string'
     }
   }
 });
