@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { ExclamationTriangleIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
 import api from '../../api';
@@ -14,9 +14,35 @@ export default function RequestForm({ onCreated, open, onClose }) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [assets, setAssets] = useState([]);
+  
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const response = await api.get('/Assets?$filter=status eq 1'); // Assuming status 1 means active
+        if (response.data.value) {
+          setAssets(response.data.value);
+        }
+      } catch (error) {
+        console.error('Error fetching assets:', error);
+      }
+    };
+    
+    fetchAssets();
+  }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'assetCode') {
+      const selectedAsset = assets.find(asset => asset.code === value);
+      setForm({
+        ...form,
+        assetCode: value,
+        assetLocation: selectedAsset ? selectedAsset.location : ''
+      });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -132,15 +158,21 @@ export default function RequestForm({ onCreated, open, onClose }) {
                     Código del Activo
                   </label>
                   <div className="mt-2">
-                    <input
-                      type="text"
+                    <select
                       name="assetCode"
                       id="assetCode"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                      placeholder="Ej: AC-001"
+                      required
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                       onChange={handleChange}
                       value={form.assetCode}
-                    />
+                    >
+                      <option value="">Seleccione un activo</option>
+                      {assets.map((asset) => (
+                        <option key={asset.ID} value={asset.code}>
+                          {asset.code} - {asset.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
