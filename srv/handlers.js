@@ -136,25 +136,12 @@ module.exports = cds.service.impl(function () {
         return { success: true, requestId, priority: newPriority };
     });
 
-    // Enriquecer los datos en las lecturas
-    this.after('READ', 'MaintenanceRequests', (results) => {
-        if (Array.isArray(results)) {
-            results.forEach(enrichRequest);
-        } else if (results) {
-            enrichRequest(results);
-        }
+    // Log para debugging de las lecturas
+    this.before('READ', 'MaintenanceRequests', (req) => {
+        console.log('Reading MaintenanceRequests', req.query?.SELECT?.columns);
     });
-});
 
-// Función auxiliar para enriquecer los datos de la solicitud
-function enrichRequest(request) {
-    if (request.requestedBy) {
-        request.requesterName = request.requestedBy.name;
-    }
-    if (request.assignedTo) {
-        request.technicianName = request.assignedTo.name;
-    }
-    if (request.asset) {
-        request.assetCode = request.asset.code;
-    }
+    // Los campos calculados (assetCode, technicianName, requesterName) 
+    // se calculan automáticamente por CAP desde las proyecciones definidas en service.cds
+    // No es necesario un handler after READ para estos campos
 }

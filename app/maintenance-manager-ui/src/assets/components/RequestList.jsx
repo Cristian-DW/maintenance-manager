@@ -33,14 +33,35 @@ export default function RequestList() {
       setLoading(true);
       setError(null);
       console.log('Fetching requests from:', 'http://localhost:4004/maintenance/MaintenanceRequests');
+      
+      // Hacer la consulta sin $select para que CAP calcule automáticamente todos los campos proyectados
+      // Los campos calculados (assetCode, technicianName, requesterName) se calculan automáticamente
       const res = await api.get("/MaintenanceRequests");
+      
       console.log('API Response:', res);
       console.log('Response data:', res.data);
+      console.log('Response status:', res.status);
       
-      // Handle OData response format
-      const requestsData = res.data?.value || res.data || [];
+      // Handle OData response format (OData V4 usa 'value' para colecciones)
+      let requestsData = [];
+      if (res.data?.value) {
+        requestsData = res.data.value;
+      } else if (Array.isArray(res.data)) {
+        requestsData = res.data;
+      } else if (res.data) {
+        // Si es un solo objeto, convertirlo a array
+        requestsData = [res.data];
+      }
+      
       console.log('Parsed requests:', requestsData);
-      setRequests(Array.isArray(requestsData) ? requestsData : []);
+      console.log('Number of requests:', requestsData.length);
+      
+      // Verificar que los datos tengan la estructura esperada
+      if (requestsData.length > 0) {
+        console.log('Sample request:', requestsData[0]);
+      }
+      
+      setRequests(requestsData);
     } catch (err) {
       console.error('Error loading requests:', err);
       console.error('Error details:', {
@@ -119,10 +140,34 @@ export default function RequestList() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {requests.length === 0 && !loading ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center">
+                        <div className="flex justify-center items-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                          <span className="ml-3 text-gray-600">Cargando solicitudes...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8">
+                        <div className="p-4 text-red-700 bg-red-100 rounded-lg border border-red-300">
+                          <p className="font-medium">Error al cargar las solicitudes</p>
+                          <p className="text-sm mt-1">{error}</p>
+                          <button
+                            onClick={load}
+                            className="mt-2 text-sm text-red-700 hover:text-red-900 underline"
+                          >
+                            Reintentar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : requests.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                        No hay solicitudes de mantenimiento
+                        No hay solicitudes de mantenimiento. Crea una nueva solicitud usando el botón "Nueva Solicitud".
                       </td>
                     </tr>
                   ) : (
@@ -134,70 +179,52 @@ export default function RequestList() {
                             <div className="font-medium text-gray-900">{request.title || 'Sin título'}</div>
                             <div className="text-gray-500">{request.description || ''}</div>
                           </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <div className="font-medium text-gray-900">{request.assetCode || 'N/A'}</div>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusClasses[request.status]}`}>
-                            <StatusIcon className="mr-1 h-4 w-4" />
-                            {request.status}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${priorityClasses[request.priority]}`}>
-                            Prioridad {request.priority}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {request.technicianName ? (
-                            <div className="flex items-center">
-                              <div className="h-8 w-8 flex-shrink-0">
-                                <img 
-                                  className="h-8 w-8 rounded-full" 
-                                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(request.technicianName)}&background=random`} 
-                                  alt="" 
-                                />
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <div className="font-medium text-gray-900">{request.assetCode || 'N/A'}</div>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusClasses[request.status] || statusClasses.OPEN}`}>
+                              <StatusIcon className="mr-1 h-4 w-4" />
+                              {request.status || 'OPEN'}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${priorityClasses[request.priority] || priorityClasses[2]}`}>
+                              Prioridad {request.priority || 2}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {request.technicianName ? (
+                              <div className="flex items-center">
+                                <div className="h-8 w-8 flex-shrink-0">
+                                  <img 
+                                    className="h-8 w-8 rounded-full" 
+                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(request.technicianName)}&background=random`} 
+                                    alt="" 
+                                  />
+                                </div>
+                                <div className="ml-4">
+                                  <div className="font-medium text-gray-900">{request.technicianName}</div>
+                                </div>
                               </div>
-                              <div className="ml-4">
-                                <div className="font-medium text-gray-900">{request.technicianName}</div>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">Sin asignar</span>
-                          )}
-                        </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <button
-                            type="button"
-                            className="text-primary-600 hover:text-primary-900"
-                          >
-                            Editar
-                          </button>
-                        </td>
-                      </tr>
-                    );
+                            ) : (
+                              <span className="text-gray-400">Sin asignar</span>
+                            )}
+                          </td>
+                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <button
+                              type="button"
+                              className="text-primary-600 hover:text-primary-900"
+                            >
+                              Editar
+                            </button>
+                          </td>
+                        </tr>
+                      );
                     })
                   )}
                 </tbody>
               </table>
-              {loading && (
-                <div className="flex justify-center items-center p-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                  <span className="ml-3 text-gray-600">Cargando solicitudes...</span>
-                </div>
-              )}
-              {error && !loading && (
-                <div className="mt-4 p-4 text-red-700 bg-red-100 rounded-lg border border-red-300">
-                  <p className="font-medium">Error al cargar las solicitudes</p>
-                  <p className="text-sm mt-1">{error}</p>
-                  <button
-                    onClick={load}
-                    className="mt-2 text-sm text-red-700 hover:text-red-900 underline"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
