@@ -19,17 +19,66 @@ export default function RequestForm({ onCreated, open, onClose }) {
   useEffect(() => {
     const fetchAssets = async () => {
       try {
-        const response = await api.get('/Assets?$filter=status eq 1'); // Assuming status 1 means active
-        if (response.data.value) {
-          setAssets(response.data.value);
+        console.log('Iniciando petición de activos...');
+        
+        const response = await api.get('/Assets');
+        
+        console.log('Respuesta completa:', response);
+        
+        if (response.data && Array.isArray(response.data.value)) {
+          const validAssets = response.data.value.map(asset => ({
+            ...asset,
+            name: asset.name || asset.info || 'Sin nombre',
+            status: asset.status ?? 1
+          }));
+          
+          console.log('Assets procesados:', validAssets);
+          
+          const activeAssets = validAssets.filter(asset => asset.status === 1);
+          console.log('Assets activos:', activeAssets);
+          
+          if (activeAssets.length === 0) {
+            console.warn('No se encontraron activos activos');
+          }
+          
+          setAssets(activeAssets);
+        } else {
+          console.error('Formato de respuesta inesperado:', response.data);
+          throw new Error('Formato de respuesta inválido');
         }
       } catch (error) {
-        console.error('Error fetching assets:', error);
+        console.error('Error al cargar activos:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: error.config
+        });
+        
+        setAssets([]);
+        
+        let errorMessage = 'Error al cargar los activos. ';
+        if (error.response) {
+          if (error.response.status === 401) {
+            errorMessage += 'Error de autenticación.';
+          } else if (error.response.status === 404) {
+            errorMessage += 'Servicio no encontrado.';
+          } else {
+            errorMessage += `Error ${error.response.status}: ${error.response.data?.error?.message || 'Error desconocido'}`;
+          }
+        } else if (error.request) {
+          errorMessage += 'No se pudo conectar con el servidor.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        alert(errorMessage + ' Por favor, intente de nuevo.');
       }
     };
     
-    fetchAssets();
-  }, []);
+    if (open) {
+      fetchAssets();
+    }
+  }, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -167,11 +216,15 @@ export default function RequestForm({ onCreated, open, onClose }) {
                       value={form.assetCode}
                     >
                       <option value="">Seleccione un activo</option>
-                      {assets.map((asset) => (
-                        <option key={asset.ID} value={asset.code}>
-                          {asset.code} - {asset.name}
-                        </option>
-                      ))}
+                      {assets && assets.length > 0 ? (
+                        assets.map((asset) => (
+                          <option key={asset.ID} value={asset.code}>
+                            {asset.code} - {asset.name || asset.info || 'Sin nombre'}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="" disabled>Cargando activos...</option>
+                      )}
                     </select>
                   </div>
                 </div>
