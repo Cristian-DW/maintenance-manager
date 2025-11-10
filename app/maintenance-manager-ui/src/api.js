@@ -6,9 +6,64 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout
-  withCredentials: false,
+  timeout: 30000, // 30 seconds timeout
+  withCredentials: true
 });
+
+// Add request interceptor for authentication
+api.interceptors.request.use(
+  config => {
+    // Add basic auth header to all requests
+    const auth = btoa('any:any');
+    config.headers.Authorization = `Basic ${auth}`;
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config
+    });
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para logs de depuración
+api.interceptors.request.use(request => {
+  console.log('Starting Request:', {
+    url: request.url,
+    method: request.method,
+    headers: request.headers
+  });
+  return request;
+});
+
+api.interceptors.response.use(
+  response => {
+    console.log('Response:', {
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
+  error => {
+    console.error('API Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    return Promise.reject(error);
+  }
+);
 
 // Add basic auth to all requests (CAP mock auth requires it)
 api.interceptors.request.use(

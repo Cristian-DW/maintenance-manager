@@ -7,7 +7,7 @@
     "dev": "cds watch",
     "build": "cds build/all",
     "deploy": "cds deploy",
-    "serve:backend": "cds run",
+    "serve:backend": "cds run --with-mocks --in-memory?",
     "serve:ui": "cd app/maintenance-manager-ui && npm run dev",
     "serve:all": "concurrently \"npm run serve:backend\" \"npm run serve:ui\"",
     "setup": "npm install && cd app/maintenance-manager-ui && npm install",

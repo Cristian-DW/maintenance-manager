@@ -1,6 +1,6 @@
 namespace mm;
 
-using { cuid } from '@sap/cds/common';
+using { cuid, managed, temporal } from '@sap/cds/common';
 
 type Role : String(30) enum {
     REQUESTER = 'REQUESTER';
@@ -16,7 +16,8 @@ type Status : String(20) enum {
     CLOSED = 'CLOSED';
 }
 
-entity Users : cuid {
+@assert.unique: {email: [email]}
+entity Users : cuid, managed {
     name        : String(100) @mandatory;
     email       : String(200) @mandatory;
     role        : Role @mandatory;
@@ -24,20 +25,21 @@ entity Users : cuid {
     assignments : Association to many MaintenanceRequests on assignments.assignedTo = $self;
 }
 
-entity Assets : cuid {
+@assert.unique: {code: [code]}
+entity Assets : cuid, managed {
     code        : String(50) @mandatory;
+    name        : String(100) @mandatory;
     location    : String(200) @mandatory;
     info        : String;
+    status      : Integer @mandatory default 1; // 1 = active, 0 = inactive
     requests    : Association to many MaintenanceRequests on requests.asset = $self;
 }
 
-entity MaintenanceRequests : cuid {
+entity MaintenanceRequests : cuid, managed {
     title       : String(200) @mandatory;
     description : String;
     status      : Status @mandatory default 'OPEN';
     priority    : Integer @mandatory default 1;
-    createdAt   : Timestamp @cds.on.insert: $now;
-    updatedAt   : Timestamp @cds.on.insert: $now @cds.on.update: $now;
     requestedBy : Association to Users;
     assignedTo  : Association to Users;
     asset       : Association to Assets;

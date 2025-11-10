@@ -5,6 +5,7 @@ import Layout from './assets/components/layout';
 import RequestList from './assets/components/RequestList';
 import RequestForm from './assets/components/RequestForm';
 import Dashboard from './assets/components/Dashboard';
+import UserList from './assets/components/UserList';
 
 const navigation = [
   { name: 'Panel de Control', href: '/', icon: HomeIcon, current: true },
@@ -45,7 +46,7 @@ export default function App() {
             </div>
           } />
           <Route path="/assets" element={<div>Assets Page</div>} />
-          <Route path="/users" element={<div>Users Page</div>} />
+          <Route path="/users" element={<UserList />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
