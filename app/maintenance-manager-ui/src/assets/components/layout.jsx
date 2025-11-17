@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dialog } from '@headlessui/react';
-import { 
-  Bars3Icon, 
+import { useAuth } from '../../auth';
+import {
+  Bars3Icon,
   XMarkIcon,
   HomeIcon,
   ClipboardDocumentListIcon,
@@ -11,19 +12,23 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
-const navigation = [
+const baseNavigation = [
   { name: 'Panel de Control', href: '/', icon: HomeIcon },
   { name: 'Solicitudes', href: '/requests', icon: ClipboardDocumentListIcon },
-  { name: 'Activos', href: '/assets', icon: WrenchIcon },
-  { name: 'Usuarios', href: '/users', icon: UserGroupIcon },
+  { name: 'Activos', href: '/assets', icon: WrenchIcon, roles: ['MANAGER', 'TECH'] },
+  { name: 'Usuarios', href: '/users', icon: UserGroupIcon, roles: ['MANAGER'] },
 ];
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentUser] = useState({
-    name: 'John Doe',
-    role: 'Manager',
-    imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const currentUser = user || { name: 'Invitado', role: 'GUEST', imageUrl: '' };
+  const navigation = baseNavigation.filter(item => {
+    if (!item.roles) return true;
+    if (!user) return false;
+    return item.roles.includes(user.role);
   });
 
   return (
@@ -36,11 +41,7 @@ export default function Layout({ children }) {
             <div className="flex items-center space-x-2">
               <span className="text-xl font-semibold text-gray-900">Maintenance Manager</span>
             </div>
-            <button
-              type="button"
-              className="-m-2.5 rounded-md p-2.5 text-gray-700"
-              onClick={() => setSidebarOpen(false)}
-            >
+            <button type="button" className="-m-2.5 rounded-md p-2.5 text-gray-700" onClick={() => setSidebarOpen(false)}>
               <XMarkIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
@@ -48,12 +49,7 @@ export default function Layout({ children }) {
             <div className="-my-6 divide-y divide-gray-500/10">
               <div className="space-y-2 py-6">
                 {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                    onClick={() => setSidebarOpen(false)}
-                  >
+                  <Link key={item.name} to={item.href} className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50" onClick={() => setSidebarOpen(false)}>
                     <item.icon className="h-6 w-6 mr-3 text-gray-400" aria-hidden="true" />
                     {item.name}
                   </Link>
@@ -61,22 +57,22 @@ export default function Layout({ children }) {
               </div>
               <div className="py-6">
                 <div className="flex items-center gap-x-4 p-4 text-sm font-semibold leading-6 text-gray-900">
-                  <img
-                    className="h-8 w-8 rounded-full bg-gray-50"
-                    src={currentUser.imageUrl}
-                    alt=""
-                  />
+                  <img className="h-8 w-8 rounded-full bg-gray-50" src={currentUser.imageUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name)} alt="" />
                   <div className="flex-1">
                     <div>{currentUser.name}</div>
                     <div className="text-xs text-gray-500">{currentUser.role}</div>
                   </div>
                 </div>
-                <a
-                  href="#"
-                  className="mt-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                >
-                  Sign out
-                </a>
+                <div className="mt-3 space-y-2 px-4">
+                  {user ? (
+                    <>
+                      <button onClick={() => { navigate('/profile'); setSidebarOpen(false); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Mi perfil</button>
+                      <button onClick={() => { logout(); navigate('/login'); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Cerrar sesión</button>
+                    </>
+                  ) : (
+                    <button onClick={() => { navigate('/login'); setSidebarOpen(false); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Iniciar sesión</button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -95,10 +91,7 @@ export default function Layout({ children }) {
                 <ul role="list" className="-mx-2 space-y-1">
                   {navigation.map((item) => (
                     <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                      >
+                      <Link to={item.href} className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-primary-600 hover:bg-gray-50">
                         <item.icon className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-primary-600" aria-hidden="true" />
                         {item.name}
                       </Link>
@@ -108,22 +101,22 @@ export default function Layout({ children }) {
               </li>
               <li className="mt-auto">
                 <div className="flex items-center gap-x-4 py-3 text-sm font-semibold leading-6 text-gray-900">
-                  <img
-                    className="h-8 w-8 rounded-full bg-gray-50"
-                    src={currentUser.imageUrl}
-                    alt=""
-                  />
+                  <img className="h-8 w-8 rounded-full bg-gray-50" src={currentUser.imageUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name)} alt="" />
                   <div className="flex-1">
                     <div>{currentUser.name}</div>
                     <div className="text-xs text-gray-500">{currentUser.role}</div>
                   </div>
                 </div>
-                <a
-                  href="#"
-                  className="mt-3 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50"
-                >
-                  Sign out
-                </a>
+                <div className="mt-3 space-y-2">
+                  {user ? (
+                    <>
+                      <button onClick={() => navigate('/profile')} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Mi perfil</button>
+                      <button onClick={() => { logout(); navigate('/login'); }} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Cerrar sesión</button>
+                    </>
+                  ) : (
+                    <button onClick={() => navigate('/login')} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Iniciar sesión</button>
+                  )}
+                </div>
               </li>
             </ul>
           </nav>
@@ -133,11 +126,7 @@ export default function Layout({ children }) {
       {/* Main content */}
       <div className="lg:pl-72">
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
+          <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
 
@@ -145,25 +134,15 @@ export default function Layout({ children }) {
           <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex flex-1"></div>
+            <div className="flex flex-1" />
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               {/* Profile dropdown */}
               <div className="relative">
-                <button
-                  type="button"
-                  className="-m-1.5 flex items-center p-1.5"
-                  id="user-menu-button"
-                >
+                <button type="button" className="-m-1.5 flex items-center p-1.5" id="user-menu-button">
                   <span className="sr-only">Open user menu</span>
-                  <img
-                    className="h-8 w-8 rounded-full bg-gray-50"
-                    src={currentUser.imageUrl}
-                    alt=""
-                  />
+                  <img className="h-8 w-8 rounded-full bg-gray-50" src={currentUser.imageUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name)} alt="" />
                   <span className="hidden lg:flex lg:items-center">
-                    <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">
-                      {currentUser.name}
-                    </span>
+                    <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">{currentUser.name}</span>
                   </span>
                 </button>
               </div>
@@ -172,11 +151,10 @@ export default function Layout({ children }) {
         </div>
 
         <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>
   );
 }
+

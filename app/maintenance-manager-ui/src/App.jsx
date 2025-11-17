@@ -7,6 +7,9 @@ import RequestForm from './assets/components/RequestForm';
 import Dashboard from './assets/components/Dashboard';
 import UserList from './assets/components/UserList';
 import AssetList from './assets/components/AssetList';
+import Login from './assets/components/Login';
+import Profile from './assets/components/Profile';
+import { useAuth } from './auth';
 
 const navigation = [
   { name: 'Panel de Control', href: '/', icon: HomeIcon, current: true },
@@ -48,6 +51,8 @@ export default function App() {
           } />
           <Route path="/assets" element={<AssetList />} />
           <Route path="/users" element={<UserList />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

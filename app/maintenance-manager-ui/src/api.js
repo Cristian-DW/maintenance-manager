@@ -11,90 +11,36 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Add request interceptor for authentication
+// Set Authorization header from localStorage if present
+const stored = localStorage.getItem('auth');
+if (stored) {
+  api.defaults.headers.Authorization = `Basic ${stored}`;
+} else {
+  // fallback to any:any to keep dev server behaving when no login performed
+  api.defaults.headers.Authorization = `Basic ${btoa('any:any')}`;
+}
+
+// Single request interceptor for logs
 api.interceptors.request.use(
   config => {
-    // Add basic auth header to all requests
-    const auth = btoa('any:any');
-    config.headers.Authorization = `Basic ${auth}`;
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for better error handling
-api.interceptors.response.use(
-  response => response,
-  error => {
-    console.error('API Error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      config: error.config
-    });
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor para logs de depuración
-api.interceptors.request.use(request => {
-  console.log('Starting Request:', {
-    url: request.url,
-    method: request.method,
-    headers: request.headers
-  });
-  return request;
-});
-
-api.interceptors.response.use(
-  response => {
-    console.log('Response:', {
-      status: response.status,
-      data: response.data
-    });
-    return response;
-  },
-  error => {
-    console.error('API Error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    return Promise.reject(error);
-  }
-);
-
-// Add basic auth to all requests (CAP mock auth requires it)
-api.interceptors.request.use(
-  config => {
-    const auth = btoa('any:any');
-    config.headers.Authorization = `Basic ${auth}`;
+    // ensure Authorization header is current (read from localStorage)
+    const token = localStorage.getItem('auth');
+    if (token) config.headers.Authorization = `Basic ${token}`;
     console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
-  error => {
-    console.error('Request Error:', error);
-    return Promise.reject(error);
-  }
+  error => Promise.reject(error)
 );
 
-// Interceptor para manejar errores
+// Single response interceptor for logging and normalized errors
 api.interceptors.response.use(
   response => {
+    // keep useful logs in development
     console.log('API Response:', response.status, response.config.url);
     return response;
   },
   error => {
-    console.error('API Error:', error.message);
-    console.error('Error code:', error.code);
-    if (error.response) {
-      console.error('Error status:', error.response.status);
-      console.error('Error data:', error.response.data);
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-    }
+    console.error('API Error:', error.message, error.response?.status, error.config?.url);
     return Promise.reject(error);
   }
 );
