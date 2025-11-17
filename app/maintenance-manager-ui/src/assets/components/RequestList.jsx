@@ -32,7 +32,7 @@ export default function RequestList() {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching requests from:', 'http://localhost:4004/maintenance/MaintenanceRequests');
+  console.log('Fetching requests from:', 'http://localhost:4004/odata/v4/maintenance/MaintenanceRequests');
       
       // Hacer la consulta sin $select para que CAP calcule automáticamente todos los campos proyectados
       // Los campos calculados (assetCode, technicianName, requesterName) se calculan automáticamente
@@ -73,7 +73,7 @@ export default function RequestList() {
       
       let errorMessage = 'Error al cargar las solicitudes';
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMessage = 'Error de conexión. Verifica que el servidor backend esté corriendo en http://localhost:4004';
+        errorMessage = 'Error de conexión. Verifica que el servidor backend esté corriendo en http://localhost:4004 (OData at /odata/v4/maintenance)';
       } else if (err.response?.status === 401) {
         errorMessage = 'Error de autenticación. Verifica las credenciales.';
       } else if (err.response?.data?.error?.message) {

@@ -15,7 +15,7 @@
             
             try {
                 const auth = btoa('any:any');
-                const response = await fetch('http://localhost:4004/maintenance/MaintenanceRequests', {
+                const response = await fetch('http://localhost:4004/odata/v4/maintenance/MaintenanceRequests', {
                     headers: {
                         'Authorization': `Basic ${auth}`,
                         'Content-Type': 'application/json'

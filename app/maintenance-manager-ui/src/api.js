@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:4004/maintenance',
+  // Use the OData V4 service path exposed by the CAP server
+  baseURL: 'http://localhost:4004/odata/v4/maintenance',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
