@@ -176,7 +176,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
                     name="title"
                     id="title"
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                     placeholder="Ej: Reparación de aire acondicionado"
                     onChange={handleChange}
                     value={form.title}
@@ -193,7 +193,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
                     id="description"
                     name="description"
                     rows={4}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                     placeholder="Describe el problema o mantenimiento requerido..."
                     onChange={handleChange}
                     value={form.description}
@@ -238,7 +238,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
                       type="text"
                       name="assetLocation"
                       id="assetLocation"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                       placeholder="Ej: Piso 2, Sala 201"
                       onChange={handleChange}
                       value={form.assetLocation}
@@ -276,7 +276,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
                       type="text"
                       name="assignedTo"
                       id="assignedTo"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                       placeholder="Nombre del responsable"
                       onChange={handleChange}
                       value={form.assignedTo}
