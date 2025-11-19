@@ -1,9 +1,62 @@
 const cds = require('@sap/cds');
+const bcrypt = require('bcryptjs');
 const { validateRequest } = require('./validation');
+
+// Funciones de utilidad para contraseñas
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+}
+
+async function comparePasswords(password, hash) {
+    return bcrypt.compare(password, hash);
+}
 
 module.exports = cds.service.impl(function () {
     const { MaintenanceRequests, Users } = this.entities;
     const { UPDATE, SELECT } = cds.ql;
+
+    // Acción personalizada de autenticación
+    this.on('authenticate', async (req) => {
+        const { email, password } = req.data;
+
+        if (!email || !password) {
+            return req.reject(400, 'Email and password are required');
+        }
+
+        try {
+            const user = await SELECT.one.from(Users).where({ email, isActive: true });
+            
+            if (!user) {
+                return req.reject(401, 'Invalid credentials');
+            }
+
+            const isValidPassword = await comparePasswords(password, user.password);
+            
+            if (!isValidPassword) {
+                return req.reject(401, 'Invalid credentials');
+            }
+
+            // No retornar la contraseña
+            delete user.password;
+            return { ok: true, user };
+        } catch (error) {
+            console.error('Authentication error:', error);
+            req.reject(500, 'Authentication failed');
+        }
+    });
+
+    // Middleware para hashear contraseña en CREATE/UPDATE de Users
+    this.before(['CREATE', 'UPDATE'], 'Users', async (req) => {
+        if (req.data.password) {
+            req.data.password = await hashPassword(req.data.password);
+        }
+    });
+
+    // Middleware para ocultar contraseña en lecturas
+    this.after('READ', 'Users', (each, req) => {
+        delete each.password;
+    });
 
     // Middleware para actualizar timestamps y validación
     this.before(['CREATE', 'UPDATE'], 'MaintenanceRequests', async (req) => {
@@ -144,4 +197,4 @@ module.exports = cds.service.impl(function () {
     // Los campos calculados (assetCode, technicianName, requesterName) 
     // se calculan automáticamente por CAP desde las proyecciones definidas en service.cds
     // No es necesario un handler after READ para estos campos
-}
+});

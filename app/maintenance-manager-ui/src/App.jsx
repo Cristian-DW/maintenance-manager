@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { BuildingOfficeIcon, WrenchScrewdriverIcon, UserIcon, HomeIcon } from '@heroicons/react/24/outline';
 import Layout from './assets/components/layout';
-import RequestList from './assets/components/RequestList';
-import RequestForm from './assets/components/RequestForm';
-import Dashboard from './assets/components/Dashboard';
-import UserList from './assets/components/UserList';
-import AssetList from './assets/components/AssetList';
-import Login from './assets/components/Login';
-import Profile from './assets/components/Profile';
 import { useAuth } from './auth';
+
+// Lazy load heavy components
+const RequestList = lazy(() => import('./assets/components/RequestList'));
+const RequestForm = lazy(() => import('./assets/components/RequestForm'));
+const Dashboard = lazy(() => import('./assets/components/Dashboard'));
+const UserList = lazy(() => import('./assets/components/UserList'));
+const AssetList = lazy(() => import('./assets/components/AssetList'));
+const Login = lazy(() => import('./assets/components/Login'));
+const Profile = lazy(() => import('./assets/components/Profile'));
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
+}
 
 const navigation = [
   { name: 'Panel de Control', href: '/', icon: HomeIcon, current: true },
@@ -35,9 +46,10 @@ export default function App() {
         pageTitle="Gestor de Solicitudes de Mantenimiento"
         currentPage={navigation.find(nav => nav.current)?.name || 'Panel de Control'}
       >
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/requests" element={
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/requests" element={
             <div className="py-6">
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <RequestList key={reload} />
@@ -48,13 +60,14 @@ export default function App() {
                 />
               </div>
             </div>
-          } />
-          <Route path="/assets" element={<AssetList />} />
-          <Route path="/users" element={<UserList />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            } />
+            <Route path="/assets" element={<AssetList />} />
+            <Route path="/users" element={<UserList />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </Layout>
     </Router>
   );

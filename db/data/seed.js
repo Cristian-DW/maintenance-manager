@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 
 async function seed() {
     // Use direct SQLite connection for seeding
@@ -10,11 +11,19 @@ async function seed() {
     // Helper to generate timestamps (CAP's managed: adds createdAt, modifiedAt)
     const now = new Date().toISOString();
 
+    // Hash passwords
+    const salt = await bcrypt.genSalt(10);
+    const adminPasswordHash = await bcrypt.hash('admin123', salt);
+    const managerPasswordHash = await bcrypt.hash('manager123', salt);
+    const techPasswordHash = await bcrypt.hash('tech123', salt);
+    const requesterPasswordHash = await bcrypt.hash('requester123', salt);
+
     // Create test users (generate IDs as UUIDs since using cuid mixin)
     const users = [
-        { ID: uuidv4(), name: 'Manager User', email: 'manager@example.com', role: 'MANAGER', createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
-        { ID: uuidv4(), name: 'Tech User', email: 'tech@example.com', role: 'TECH', createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
-        { ID: uuidv4(), name: 'Requester User', email: 'requester@example.com', role: 'REQUESTER', createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' }
+        { ID: uuidv4(), name: 'Admin User', email: 'admin@example.com', password: adminPasswordHash, role: 'ADMIN', isActive: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), name: 'Manager User', email: 'manager@example.com', password: managerPasswordHash, role: 'MANAGER', isActive: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), name: 'Tech User', email: 'tech@example.com', password: techPasswordHash, role: 'TECH', isActive: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), name: 'Requester User', email: 'requester@example.com', password: requesterPasswordHash, role: 'REQUESTER', isActive: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' }
     ];
 
     // Create test assets (generate IDs as UUIDs since using cuid mixin)
@@ -36,11 +45,15 @@ async function seed() {
 
     try {
         // Insert users with generated IDs and timestamps
-        const insertUser = db.prepare(`INSERT OR IGNORE INTO mm_Users (ID, name, email, role, createdAt, modifiedAt, createdBy, modifiedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+        const insertUser = db.prepare(`INSERT OR IGNORE INTO mm_Users (ID, name, email, password, role, isActive, createdAt, modifiedAt, createdBy, modifiedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
         for (const user of users) {
-            insertUser.run(user.ID, user.name, user.email, user.role, user.createdAt, user.modifiedAt, user.createdBy, user.modifiedBy);
+            insertUser.run(user.ID, user.name, user.email, user.password, user.role, user.isActive, user.createdAt, user.modifiedAt, user.createdBy, user.modifiedBy);
         }
         console.log('✅ Users seeded successfully');
+        console.log('   - admin@example.com / admin123');
+        console.log('   - manager@example.com / manager123');
+        console.log('   - tech@example.com / tech123');
+        console.log('   - requester@example.com / requester123');
 
         // Insert assets with generated IDs and timestamps
         const insertAsset = db.prepare(`INSERT OR IGNORE INTO mm_Assets (ID, code, name, location, info, status, createdAt, modifiedAt, createdBy, modifiedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);

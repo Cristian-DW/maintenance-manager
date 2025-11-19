@@ -23,32 +23,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async ({ email, password }) => {
-    // store basic auth token
-    const token = btoa(`${email}:${password}`);
-    localStorage.setItem('auth', token);
-    // Update axios header immediately
-    api.defaults.headers.Authorization = `Basic ${token}`;
+    if (!email || !password) {
+      return { ok: false, message: 'Email and password are required' };
+    }
 
-    // Try to fetch the user by email
     try {
-      const filter = encodeURIComponent(`email eq '${email}'`);
-      const res = await api.get(`/Users?$filter=${filter}`);
-      let found = null;
-      if (res.data && Array.isArray(res.data.value) && res.data.value.length > 0) {
-        found = res.data.value[0];
-      }
-
-      if (found) {
-        setUser(found);
-        localStorage.setItem('user', JSON.stringify(found));
-        return { ok: true, user: found };
+      // Call the authenticate endpoint on the backend
+      const res = await api.post('/authenticate', { email, password });
+      
+      if (res.data && res.data.ok && res.data.user) {
+        const user = res.data.user;
+        
+        // Store auth token (we can use a JWT or bearer token in production)
+        const token = btoa(`${email}:${password}`);
+        localStorage.setItem('auth', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        // Update axios header
+        api.defaults.headers.Authorization = `Bearer ${token}`;
+        
+        setUser(user);
+        return { ok: true, user };
       } else {
-        // If user not found, return not ok (frontend can decide to create user)
-        return { ok: false, message: 'Usuario no encontrado' };
+        return { ok: false, message: res.data?.message || 'Login failed' };
       }
     } catch (err) {
       console.error('Login error:', err);
-      return { ok: false, message: err.message || 'Error' };
+      const errorMsg = err.response?.data?.message || err.message || 'Authentication failed';
+      return { ok: false, message: errorMsg };
     }
   };
 
@@ -78,10 +80,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateProfile }}>
-      {children}
-    </AuthContext.Provider>
+  return React.createElement(
+    AuthContext.Provider,
+    { value: { user, loading, login, logout, updateProfile } },
+    children
   );
 }
 

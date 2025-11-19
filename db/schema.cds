@@ -20,7 +20,9 @@ type Status : String(20) enum {
 entity Users : cuid, managed {
     name        : String(100) @mandatory;
     email       : String(200) @mandatory;
+    password    : String @mandatory;
     role        : Role @mandatory;
+    isActive    : Boolean default true;
     requests    : Association to many MaintenanceRequests on requests.requestedBy = $self;
     assignments : Association to many MaintenanceRequests on assignments.assignedTo = $self;
 }
