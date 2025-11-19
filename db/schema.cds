@@ -1,6 +1,6 @@
 namespace mm;
 
-using { cuid, managed, temporal } from '@sap/cds/common';
+using { cuid, managed } from '@sap/cds/common';
 
 type Role : String(30) enum {
     REQUESTER = 'REQUESTER';
