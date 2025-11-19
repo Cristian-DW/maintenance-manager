@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // Use the OData V4 service path exposed by the CAP server
-  baseURL: 'http://localhost:4004/odata/v4/maintenance',
+  // Use the base URL for the CAP server - routes will include the full path
+  baseURL: 'http://localhost:4004',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -38,6 +38,13 @@ api.interceptors.request.use(
     // ensure Authorization header is current (read from localStorage)
     const token = localStorage.getItem('auth');
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    
+    // Add /odata/v4/maintenance prefix to API routes (but not authenticate which is at root)
+    if (config.url && !config.url.startsWith('http') && !config.url.startsWith('/odata')) {
+      if (config.url !== '/odata/v4/maintenance/authenticate') {
+        config.url = `/odata/v4/maintenance${config.url.startsWith('/') ? config.url : '/' + config.url}`;
+      }
+    }
     
     // Check cache for GET requests
     if (config.method === 'get') {

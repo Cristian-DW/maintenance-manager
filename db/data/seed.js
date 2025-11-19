@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 async function seed() {
     // Use direct SQLite connection for seeding
-    const dbPath = path.join(__dirname, '../../db.sqlite');
+    const dbPath = path.join(__dirname, '../../maintenance.db');
     const db = new Database(dbPath);
 
     // Helper to generate timestamps (CAP's managed: adds createdAt, modifiedAt)

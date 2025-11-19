@@ -28,13 +28,14 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // Call the authenticate endpoint on the backend
+      // Call the authenticate action on the backend
+      // In CAP OData, actions are called via POST to /odata/v4/service/Action
       const res = await api.post('/authenticate', { email, password });
       
       if (res.data && res.data.ok && res.data.user) {
         const user = res.data.user;
         
-        // Store auth token (we can use a JWT or bearer token in production)
+        // Store auth token
         const token = btoa(`${email}:${password}`);
         localStorage.setItem('auth', token);
         localStorage.setItem('user', JSON.stringify(user));

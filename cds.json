@@ -1,0 +1,22 @@
+{
+  "requires": {
+    "db": {
+      "kind": "sqlite",
+      "model": "db/",
+      "credentials": {
+        "url": "db.sqlite"
+      }
+    }
+  },
+  "[development]": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "model": "db/",
+        "credentials": {
+          "url": "db.sqlite"
+        }
+      }
+    }
+  }
+}
