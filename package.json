@@ -3,25 +3,26 @@
  "version": "0.1.0",
  "private": true,
  "scripts": {
-    "start": "cds run",
-    "dev": "cds watch",
-    "build": "cds build/all",
-    "deploy": "cds deploy",
-    "serve:backend": "cds run --with-mocks --in-memory?",
-    "serve:ui": "cd app/maintenance-manager-ui && npm run dev",
-    "serve:all": "concurrently \"npm run serve:backend\" \"npm run serve:ui\"",
-    "setup": "npm install && cd app/maintenance-manager-ui && npm install",
-    "build:all": "npm run build && cd app/maintenance-manager-ui && npm run build",
-    "test": "jest",
-    "lint": "eslint .",
-    "db:init": "cds deploy --to sqlite:maintenance.db",
-    "db:seed": "node ./db/data/seed.js",
-    "clean": "rimraf dist gen node_modules */*/node_modules"
+  "start": "cds run",
+  "dev": "cds watch",
+  "build": "cds build/all",
+  "deploy": "cds deploy",
+  "serve:backend": "cds run --with-mocks --in-memory?",
+  "serve:ui": "cd app/maintenance-manager-ui && npm run dev",
+  "serve:all": "concurrently \"npm run serve:backend\" \"npm run serve:ui\"",
+  "setup": "npm install && cd app/maintenance-manager-ui && npm install",
+  "build:all": "npm run build && cd app/maintenance-manager-ui && npm run build",
+  "test": "jest",
+  "lint": "eslint .",
+  "db:init": "cds deploy --to sqlite:maintenance.db",
+  "db:seed": "node ./db/data/seed.js",
+  "clean": "rimraf dist gen node_modules */*/node_modules"
  },
  "dependencies": {
   "@sap/cds": "^9.3.1",
+  "@sap/xssec": "^4",
   "sqlite3": "^5.1.7",
-  "@sap/xssec": "^4"
+  "uuid": "^13.0.0"
  },
  "engines": {
   "node": ">=18"
@@ -38,11 +39,11 @@
   }
  },
  "devDependencies": {
-    "@cap-js/sqlite": "^2.0.3",
-    "concurrently": "^8.2.2",
-    "eslint": "^8.55.0",
-    "jest": "^29.7.0",
-    "rimraf": "^5.0.5",
-    "supertest": "^6.3.3"
+  "@cap-js/sqlite": "^2.0.3",
+  "concurrently": "^8.2.2",
+  "eslint": "^8.55.0",
+  "jest": "^29.7.0",
+  "rimraf": "^5.0.5",
+  "supertest": "^6.3.3"
  }
 }

@@ -1,27 +1,30 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 async function seed() {
     // Use direct SQLite connection for seeding
     const dbPath = path.join(__dirname, '../../db.sqlite');
     const db = new Database(dbPath);
 
-    // Create test users (do NOT set ID - let CAP generate cuid)
+    // Helper to generate timestamps (CAP's managed: adds createdAt, modifiedAt)
+    const now = new Date().toISOString();
+
+    // Create test users (generate IDs as UUIDs since using cuid mixin)
     const users = [
-        { name: 'Manager User', email: 'manager@example.com', role: 'MANAGER' },
-        { name: 'Tech User', email: 'tech@example.com', role: 'TECH' },
-        { name: 'Requester User', email: 'requester@example.com', role: 'REQUESTER' }
+        { ID: uuidv4(), name: 'Manager User', email: 'manager@example.com', role: 'MANAGER', createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), name: 'Tech User', email: 'tech@example.com', role: 'TECH', createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), name: 'Requester User', email: 'requester@example.com', role: 'REQUESTER', createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' }
     ];
 
-    // Create test assets
-    // Create test assets (do NOT set ID - let CAP generate cuid)
+    // Create test assets (generate IDs as UUIDs since using cuid mixin)
     const assets = [
-        { code: 'AC-001', name: 'Air Conditioner Principal', location: 'Floor 1, Room 101', info: 'Air Conditioner 1 - HVAC System', status: 1 },
-        { code: 'PC-001', name: 'Printer Canon MF452', location: 'Floor 2, Office Area', info: 'Printer Canon - Office Printer', status: 1 },
-        { code: 'ELV-001', name: 'Elevator Principal', location: 'Main Building', info: 'Main passenger elevator - 8 person capacity', status: 1 },
-        { code: 'GEN-001', name: 'Emergency Generator', location: 'Basement', info: 'Backup power generator - 200KW', status: 1 },
-        { code: 'SEC-001', name: 'Security System', location: 'All floors', info: 'Central security and access control system', status: 1 },
-        { code: 'AC-002', name: 'Air Conditioner Secondary', location: 'Floor 2', info: 'Secondary HVAC system', status: 0 }
+        { ID: uuidv4(), code: 'AC-001', name: 'Air Conditioner Principal', location: 'Floor 1, Room 101', info: 'Air Conditioner 1 - HVAC System', status: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), code: 'PC-001', name: 'Printer Canon MF452', location: 'Floor 2, Office Area', info: 'Printer Canon - Office Printer', status: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), code: 'ELV-001', name: 'Elevator Principal', location: 'Main Building', info: 'Main passenger elevator - 8 person capacity', status: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), code: 'GEN-001', name: 'Emergency Generator', location: 'Basement', info: 'Backup power generator - 200KW', status: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), code: 'SEC-001', name: 'Security System', location: 'All floors', info: 'Central security and access control system', status: 1, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' },
+        { ID: uuidv4(), code: 'AC-002', name: 'Air Conditioner Secondary', location: 'Floor 2', info: 'Secondary HVAC system', status: 0, createdAt: now, modifiedAt: now, createdBy: 'seed', modifiedBy: 'seed' }
     ];
 
     // Create test maintenance requests
@@ -32,17 +35,17 @@ async function seed() {
     ];
 
     try {
-        // Insert users (do not provide ID)
-        const insertUser = db.prepare(`INSERT OR IGNORE INTO mm_Users (name, email, role) VALUES (?, ?, ?)`);
+        // Insert users with generated IDs and timestamps
+        const insertUser = db.prepare(`INSERT OR IGNORE INTO mm_Users (ID, name, email, role, createdAt, modifiedAt, createdBy, modifiedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
         for (const user of users) {
-            insertUser.run(user.name, user.email, user.role);
+            insertUser.run(user.ID, user.name, user.email, user.role, user.createdAt, user.modifiedAt, user.createdBy, user.modifiedBy);
         }
         console.log('✅ Users seeded successfully');
 
-        // Insert assets (do not provide ID)
-        const insertAsset = db.prepare(`INSERT OR IGNORE INTO mm_Assets (code, name, location, info, status) VALUES (?, ?, ?, ?, ?)`);
+        // Insert assets with generated IDs and timestamps
+        const insertAsset = db.prepare(`INSERT OR IGNORE INTO mm_Assets (ID, code, name, location, info, status, createdAt, modifiedAt, createdBy, modifiedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
         for (const asset of assets) {
-            insertAsset.run(asset.code, asset.name, asset.location, asset.info || null, asset.status);
+            insertAsset.run(asset.ID, asset.code, asset.name, asset.location, asset.info || null, asset.status, asset.createdAt, asset.modifiedAt, asset.createdBy, asset.modifiedBy);
         }
         console.log('✅ Assets seeded successfully');
 
@@ -51,8 +54,8 @@ async function seed() {
         const getAssetByCode = db.prepare(`SELECT ID FROM mm_Assets WHERE code = ? LIMIT 1`);
 
         const insertRequest = db.prepare(`INSERT OR IGNORE INTO mm_MaintenanceRequests 
-            (title, description, status, priority, requestedBy_ID, assignedTo_ID, asset_ID) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)`);
+            (ID, title, description, status, priority, requestedBy_ID, assignedTo_ID, asset_ID, createdAt, modifiedAt, createdBy, modifiedBy) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
         for (const req of requests) {
             const requesterRow = getUserByEmail.get(req.requestedByEmail);
@@ -65,7 +68,7 @@ async function seed() {
             const assetRow = getAssetByCode.get(req.assetCode);
             const assetId = assetRow ? assetRow.ID : null;
 
-            insertRequest.run(req.title, req.description, req.status, req.priority, requesterId, assignedToId, assetId);
+            insertRequest.run(uuidv4(), req.title, req.description, req.status, req.priority, requesterId, assignedToId, assetId, now, now, 'seed', 'seed');
         }
         console.log('✅ Maintenance requests seeded successfully');
 
