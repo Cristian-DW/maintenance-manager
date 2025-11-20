@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
     try {
       // Call the authenticate action on the backend
       // In CAP OData, actions are called via POST to /odata/v4/service/Action
-      const res = await api.post('/authenticate', { email, password });
+      const res = await api.post('/odata/v4/maintenance/authenticate', { email, password });
       
       if (res.data && res.data.ok && res.data.user) {
         const user = res.data.user;

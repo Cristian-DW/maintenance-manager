@@ -12,13 +12,19 @@ async function comparePasswords(password, hash) {
     return bcrypt.compare(password, hash);
 }
 
-module.exports = cds.service.impl(function () {
+module.exports = cds.service.impl(async function () {
     const { MaintenanceRequests, Users } = this.entities;
     const { UPDATE, SELECT } = cds.ql;
+
+    // eslint-disable-next-line no-console
+    console.log('► Handlers.js: Setting up service handlers...');
 
     // Acción personalizada de autenticación
     this.on('authenticate', async (req) => {
         const { email, password } = req.data;
+        
+        // eslint-disable-next-line no-console
+        console.log('authenticate action called with email:', email);
 
         if (!email || !password) {
             return req.reject(400, 'Email and password are required');
@@ -28,19 +34,26 @@ module.exports = cds.service.impl(function () {
             const user = await SELECT.one.from(Users).where({ email, isActive: true });
             
             if (!user) {
+                // eslint-disable-next-line no-console
+                console.log('User not found for email:', email);
                 return req.reject(401, 'Invalid credentials');
             }
 
             const isValidPassword = await comparePasswords(password, user.password);
             
             if (!isValidPassword) {
+                // eslint-disable-next-line no-console
+                console.log('Invalid password for user:', email);
                 return req.reject(401, 'Invalid credentials');
             }
 
             // No retornar la contraseña
             delete user.password;
+            // eslint-disable-next-line no-console
+            console.log('Authentication successful for user:', email);
             return { ok: true, user };
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Authentication error:', error);
             req.reject(500, 'Authentication failed');
         }
@@ -54,7 +67,7 @@ module.exports = cds.service.impl(function () {
     });
 
     // Middleware para ocultar contraseña en lecturas
-    this.after('READ', 'Users', (each, req) => {
+    this.after('READ', 'Users', (each) => {
         delete each.password;
     });
 
@@ -79,13 +92,16 @@ module.exports = cds.service.impl(function () {
                     const user = await SELECT.one.from(Users).where({ email: userEmail });
                     if (user && user.ID) {
                         req.data.requestedBy_ID = user.ID;
+                        // eslint-disable-next-line no-console
                         console.log(`Found user ${user.ID} for email ${userEmail}`);
                     } else {
                         // Si no se encuentra, usar el usuario requester por defecto (ID: '3')
                         req.data.requestedBy_ID = '3';
+                        // eslint-disable-next-line no-console
                         console.log(`User not found for email ${userEmail}, using default requester (ID: 3)`);
                     }
                 } catch (error) {
+                    // eslint-disable-next-line no-console
                     console.warn('Error finding user, using default requester:', error.message);
                     // Usar el usuario requester por defecto (ID: '3') - esto asegura que siempre haya un usuario
                     req.data.requestedBy_ID = '3';
@@ -99,6 +115,7 @@ module.exports = cds.service.impl(function () {
             req.data.createdAt = new Date().toISOString();
             req.data.status = req.data.status || 'OPEN';
             
+            // eslint-disable-next-line no-console
             console.log('Creating maintenance request with data:', {
                 title: req.data.title,
                 asset_ID: req.data.asset_ID,
@@ -191,6 +208,7 @@ module.exports = cds.service.impl(function () {
 
     // Log para debugging de las lecturas
     this.before('READ', 'MaintenanceRequests', (req) => {
+        // eslint-disable-next-line no-console
         console.log('Reading MaintenanceRequests', req.query?.SELECT?.columns);
     });
 

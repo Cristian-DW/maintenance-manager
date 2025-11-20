@@ -4,7 +4,7 @@
       "kind": "sqlite",
       "model": "db/",
       "credentials": {
-        "url": "db.sqlite"
+        "url": "maintenance.db"
       }
     }
   },
@@ -14,7 +14,7 @@
         "kind": "sqlite",
         "model": "db/",
         "credentials": {
-          "url": "db.sqlite"
+          "url": "maintenance.db"
         }
       }
     }

@@ -23,27 +23,24 @@ function isCacheValid(timestamp) {
   return Date.now() - timestamp < CACHE_DURATION;
 }
 
-// Set Authorization header from localStorage if present
-const stored = localStorage.getItem('auth');
-if (stored) {
-  api.defaults.headers.Authorization = `Bearer ${stored}`;
-} else {
-  // fallback to any:any to keep dev server behaving when no login performed
-  api.defaults.headers.Authorization = `Bearer ${btoa('any:any')}`;
-}
+// Don't set default Authorization header - will be handled by interceptor
 
 // Single request interceptor for logs and caching
 api.interceptors.request.use(
   config => {
-    // ensure Authorization header is current (read from localStorage)
-    const token = localStorage.getItem('auth');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    // Special handling for authenticate endpoint - don't send Authorization header
+    if (config.url && config.url.includes('/authenticate')) {
+      delete config.headers.Authorization;
+    } else {
+      // ensure Authorization header is current (read from localStorage) for other requests
+      const token = localStorage.getItem('auth');
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+    }
     
-    // Add /odata/v4/maintenance prefix to API routes (but not authenticate which is at root)
+    // Add /odata/v4/maintenance prefix to API routes only if needed
+    // Skip if URL already contains /odata/ or is an absolute path
     if (config.url && !config.url.startsWith('http') && !config.url.startsWith('/odata')) {
-      if (config.url !== '/odata/v4/maintenance/authenticate') {
-        config.url = `/odata/v4/maintenance${config.url.startsWith('/') ? config.url : '/' + config.url}`;
-      }
+      config.url = `/odata/v4/maintenance${config.url.startsWith('/') ? config.url : '/' + config.url}`;
     }
     
     // Check cache for GET requests

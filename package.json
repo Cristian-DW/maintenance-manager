@@ -7,16 +7,16 @@
   "dev": "cds watch",
   "build": "cds build/all",
   "deploy": "cds deploy",
-  "serve:backend": "cds run --with-mocks",
+  "serve:backend": "cds run --with-mocks --in-memory",
   "serve:ui": "cd app/maintenance-manager-ui && npm run dev",
   "serve:all": "concurrently \"npm run serve:backend\" \"npm run serve:ui\"",
   "setup": "npm install && cd app/maintenance-manager-ui && npm install",
   "build:all": "npm run build && cd app/maintenance-manager-ui && npm run build",
   "test": "jest",
   "lint": "eslint .",
-  "db:init": "cds deploy --to sqlite:maintenance.db",
+  "db:init": "rm -f maintenance.db* && cds deploy --to sqlite:maintenance.db",
   "db:seed": "node ./db/data/seed.js",
-  "clean": "rimraf dist gen node_modules */*/node_modules"
+  "clean": "rimraf dist gen node_modules */*/node_modules db.sqlite* maintenance.db*"
  },
  "dependencies": {
   "@sap/cds": "^9.3.1",
