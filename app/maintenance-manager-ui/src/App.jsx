@@ -1,8 +1,21 @@
 import { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BuildingOfficeIcon, WrenchScrewdriverIcon, UserIcon, HomeIcon } from '@heroicons/react/24/outline';
 import Layout from './assets/components/layout';
 import { useAuth } from './auth';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 30000, // 30 seconds
+    },
+  },
+});
 
 // Lazy load heavy components
 const RequestList = lazy(() => import('./assets/components/RequestList'));
@@ -40,35 +53,55 @@ export default function App() {
   console.log('App component rendered');
 
   return (
-    <Router>
-      <Layout 
-        navigation={navigation}
-        pageTitle="Gestor de Solicitudes de Mantenimiento"
-        currentPage={navigation.find(nav => nav.current)?.name || 'Panel de Control'}
-      >
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/requests" element={
-            <div className="py-6">
-              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <RequestList key={reload} />
-                <RequestForm 
-                  open={isFormOpen} 
-                  onClose={() => setIsFormOpen(false)}
-                  onCreated={handleRequestCreated}
-                />
-              </div>
-            </div>
-            } />
-            <Route path="/assets" element={<AssetList />} />
-            <Route path="/users" element={<UserList />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </Layout>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Layout
+          navigation={navigation}
+          pageTitle="Gestor de Solicitudes de Mantenimiento"
+          currentPage={navigation.find(nav => nav.current)?.name || 'Panel de Control'}
+        >
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/requests" element={
+                <ProtectedRoute>
+                  <div className="py-6">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                      <RequestList key={reload} />
+                      <RequestForm
+                        open={isFormOpen}
+                        onClose={() => setIsFormOpen(false)}
+                        onCreated={handleRequestCreated}
+                      />
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              } />
+              <Route path="/assets" element={
+                <ProtectedRoute>
+                  <AssetList />
+                </ProtectedRoute>
+              } />
+              <Route path="/users" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <UserList />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Layout>
+      </Router>
+    </QueryClientProvider>
   );
 }

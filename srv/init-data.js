@@ -1,24 +1,22 @@
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { INSERT, SELECT } = require('@sap/cds').ql;
+const logger = require('./utils/logger');
 
 module.exports = async (srv) => {
-    // eslint-disable-next-line no-console
-    console.log('✓ init-data.js module loading...');
-    
+    logger.info('init-data module loading...');
+
     // Initialize data on first run (only for in-memory db)
     const { Users, Assets } = srv.entities;
-    
+
     // Check if data already exists
     const existingUsers = await SELECT.from(Users);
     if (existingUsers.length > 0) {
-        // eslint-disable-next-line no-console
-        console.log('✓ Data already initialized, users count:', existingUsers.length);
+        logger.info('Data already initialized', { usersCount: existingUsers.length });
         return;
     }
 
-    // eslint-disable-next-line no-console
-    console.log('✓ Initializing data...');
+    logger.info('Initializing data...');
 
     const now = new Date().toISOString();
     const salt = await bcrypt.genSalt(10);
@@ -81,8 +79,7 @@ module.exports = async (srv) => {
         }
     ]);
 
-    // eslint-disable-next-line no-console
-    console.log('✓ Users initialized:', users.length);
+    logger.info('Users initialized', { count: users.length });
 
     // Insert Assets
     const assets = await INSERT.into(Assets).entries([
@@ -124,6 +121,5 @@ module.exports = async (srv) => {
         }
     ]);
 
-    // eslint-disable-next-line no-console
-    console.log('✓ Assets initialized:', assets.length);
+    logger.info('Assets initialized', { count: assets.length });
 };

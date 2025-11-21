@@ -32,17 +32,19 @@ api.interceptors.request.use(
     if (config.url && config.url.includes('/authenticate')) {
       delete config.headers.Authorization;
     } else {
-      // ensure Authorization header is current (read from localStorage) for other requests
-      const token = localStorage.getItem('auth');
-      if (token) config.headers.Authorization = `Bearer ${token}`;
+      // Use JWT access token for other requests
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
-    
+
     // Add /odata/v4/maintenance prefix to API routes only if needed
     // Skip if URL already contains /odata/ or is an absolute path
     if (config.url && !config.url.startsWith('http') && !config.url.startsWith('/odata')) {
       config.url = `/odata/v4/maintenance${config.url.startsWith('/') ? config.url : '/' + config.url}`;
     }
-    
+
     // Check cache for GET requests
     if (config.method === 'get') {
       const cacheKey = getCacheKey(config);
@@ -52,7 +54,7 @@ api.interceptors.request.use(
         return Promise.reject(new Error('__CACHE__:' + cacheKey));
       }
     }
-    
+
     console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
@@ -68,15 +70,20 @@ api.interceptors.request.use(
 // Single response interceptor for logging and normalized errors
 api.interceptors.response.use(
   response => {
-    // Cache successful GET responses
-    if (response.config.method === 'get') {
+    // Clear cache on mutations to ensure fresh data
+    const method = response.config.method?.toLowerCase();
+    if (['post', 'patch', 'put', 'delete'].includes(method)) {
+      console.log('Clearing cache after mutation:', method, response.config.url);
+      cache.clear();
+    } else if (method === 'get') {
+      // Cache successful GET responses
       const cacheKey = getCacheKey(response.config);
       cache.set(cacheKey, {
         data: response,
         timestamp: Date.now()
       });
     }
-    
+
     console.log('API Response:', response.status, response.config.url);
     return response;
   },

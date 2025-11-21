@@ -1,44 +1,53 @@
 {
   "xsappname": "maintenance-manager",
   "tenant-mode": "dedicated",
+  "description": "Security descriptor for Maintenance Manager",
   "scopes": [
     {
-      "name": "$XSAPPNAME.User",
-      "description": "Acceso básico a la aplicación"
-    },
-    {
       "name": "$XSAPPNAME.Admin",
-      "description": "Permisos administrativos"
+      "description": "Administrator"
     },
     {
-      "name": "$XSAPPNAME.REQUESTER",
-      "description": "REQUESTER"
+      "name": "$XSAPPNAME.Manager",
+      "description": "Manager"
     },
     {
-      "name": "$XSAPPNAME.TECH",
-      "description": "TECH"
+      "name": "$XSAPPNAME.Technician",
+      "description": "Technician"
     },
     {
-      "name": "$XSAPPNAME.MANAGER",
-      "description": "MANAGER"
+      "name": "$XSAPPNAME.Requester",
+      "description": "Requester"
     }
   ],
   "role-templates": [
     {
-      "name": "User",
-      "description": "Usuario estándar",
+      "name": "Admin",
+      "description": "Administrator with full access",
       "scope-references": [
-        "$XSAPPNAME.User"
+        "$XSAPPNAME.Admin"
       ]
     },
     {
-      "name": "Admin",
-      "description": "Administrador",
+      "name": "Manager",
+      "description": "Manager with oversight access",
       "scope-references": [
-        "$XSAPPNAME.User",
-        "$XSAPPNAME.Admin"
+        "$XSAPPNAME.Manager"
+      ]
+    },
+    {
+      "name": "Technician",
+      "description": "Technician who handles maintenance requests",
+      "scope-references": [
+        "$XSAPPNAME.Technician"
+      ]
+    },
+    {
+      "name": "Requester",
+      "description": "User who can create maintenance requests",
+      "scope-references": [
+        "$XSAPPNAME.Requester"
       ]
     }
-  ],
-  "attributes": []
+  ]
 }

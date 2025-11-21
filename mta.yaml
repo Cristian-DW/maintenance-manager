@@ -1,8 +1,8 @@
-_schema-version: "3.1"
+---
+_schema-version: '3.1'
 ID: maintenance-manager
 version: 1.0.0
-description: "Maintenance Request Manager"
-
+description: Maintenance Manager Application for SAP BTP
 parameters:
   enable-parallel-deployments: true
 
@@ -11,44 +11,105 @@ build-parameters:
     - builder: custom
       commands:
         - npm install
-        - npx cds build
+        - npm run build
 
 modules:
-  - name: maintenance-srv
+  # Backend CAP Service
+  - name: maintenance-manager-srv
     type: nodejs
-    path: gen/srv
+    path: .
     parameters:
       buildpack: nodejs_buildpack
-    requires:
-      - name: uaa_maintenance
+      memory: 512M
+      disk-quota: 1024M
+    build-parameters:
+      builder: npm-ci
     provides:
       - name: srv-api
         properties:
-          srv-url: "${default-url}"
-    build-parameters:
-      builder: npm-ci
+          srv-url: ${default-url}
+    requires:
+      - name: maintenance-manager-db
+      - name: maintenance-manager-uaa
+      - name: maintenance-manager-destination
+        optional: true
+    properties:
+      NODE_ENV: production
+      JWT_SECRET: ((jwt-secret))
+      JWT_EXPIRES_IN: 1h
+      JWT_REFRESH_EXPIRES_IN: 7d
 
-  - name: maintenance-approuter
-    type: nodejs
-    path: approuter
+  # Frontend UI
+  - name: maintenance-manager-ui
+    type: html5
+    path: app/maintenance-manager-ui
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run build
+      supported-platforms: []
     parameters:
-      keep-existing-routes: true
       disk-quota: 256M
       memory: 256M
     requires:
-      - name: uaa_maintenance
       - name: srv-api
         group: destinations
         properties:
-          forwardAuthToken: true
-          strictSSL: true
           name: srv-api
-          url: "~{srv-url}"
+          url: ~{srv-url}
+          forwardAuthToken: true
+
+  # Database Deployer (for HANA)
+  - name: maintenance-manager-db-deployer
+    type: hdb
+    path: db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: maintenance-manager-db
 
 resources:
-  - name: uaa_maintenance
+  # HANA Database
+  - name: maintenance-manager-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+    properties:
+      hdi-container-name: ${service-name}
+
+  # XSUAA Authentication
+  - name: maintenance-manager-uaa
     type: org.cloudfoundry.managed-service
     parameters:
-      path: ./xs-security.json
       service: xsuaa
       service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: maintenance-manager-${space}
+        tenant-mode: dedicated
+        role-collections:
+          - name: MaintenanceManager_Admin
+            description: Administrator
+            role-template-references:
+              - $XSAPPNAME.Admin
+          - name: MaintenanceManager_Manager
+            description: Manager
+            role-template-references:
+              - $XSAPPNAME.Manager
+          - name: MaintenanceManager_Technician
+            description: Technician
+            role-template-references:
+              - $XSAPPNAME.Technician
+          - name: MaintenanceManager_Requester
+            description: Requester
+            role-template-references:
+              - $XSAPPNAME.Requester
+
+  # Destination Service (optional)
+  - name: maintenance-manager-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite

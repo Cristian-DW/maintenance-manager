@@ -3,6 +3,7 @@ namespace mm;
 using { cuid, managed } from '@sap/cds/common';
 
 type Role : String(30) enum {
+    ADMIN = 'ADMIN';
     REQUESTER = 'REQUESTER';
     TECH = 'TECH';
     MANAGER = 'MANAGER';

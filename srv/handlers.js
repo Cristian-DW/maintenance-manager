@@ -1,61 +1,52 @@
 const cds = require('@sap/cds');
-const bcrypt = require('bcryptjs');
+const { hashPassword } = require('./utils/password');
+const { authenticate: authenticateUser, refreshAccessToken } = require('./services/auth.service');
 const { validateRequest } = require('./validation');
-
-// Funciones de utilidad para contraseñas
-async function hashPassword(password) {
-    const salt = await bcrypt.genSalt(10);
-    return bcrypt.hash(password, salt);
-}
-
-async function comparePasswords(password, hash) {
-    return bcrypt.compare(password, hash);
-}
+const logger = require('./utils/logger');
 
 module.exports = cds.service.impl(async function () {
     const { MaintenanceRequests, Users } = this.entities;
     const { UPDATE, SELECT } = cds.ql;
 
-    // eslint-disable-next-line no-console
-    console.log('► Handlers.js: Setting up service handlers...');
+    logger.info('Setting up service handlers...');
 
-    // Acción personalizada de autenticación
+    // Acción personalizada de autenticación con JWT
     this.on('authenticate', async (req) => {
         const { email, password } = req.data;
-        
-        // eslint-disable-next-line no-console
-        console.log('authenticate action called with email:', email);
 
-        if (!email || !password) {
-            return req.reject(400, 'Email and password are required');
-        }
+        logger.info('Authentication attempt', { email });
 
         try {
-            const user = await SELECT.one.from(Users).where({ email, isActive: true });
-            
-            if (!user) {
-                // eslint-disable-next-line no-console
-                console.log('User not found for email:', email);
-                return req.reject(401, 'Invalid credentials');
-            }
+            const result = await authenticateUser(email, password);
 
-            const isValidPassword = await comparePasswords(password, user.password);
-            
-            if (!isValidPassword) {
-                // eslint-disable-next-line no-console
-                console.log('Invalid password for user:', email);
-                return req.reject(401, 'Invalid credentials');
-            }
+            logger.info('Authentication successful', { email });
 
-            // No retornar la contraseña
-            delete user.password;
-            // eslint-disable-next-line no-console
-            console.log('Authentication successful for user:', email);
-            return { ok: true, user };
+            return {
+                ok: true,
+                user: result.user,
+                accessToken: result.accessToken,
+                refreshToken: result.refreshToken
+            };
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Authentication error:', error);
-            req.reject(500, 'Authentication failed');
+            logger.error('Authentication failed', { email, error: error.message });
+            return req.reject(401, error.message);
+        }
+    });
+
+    // Refresh token action
+    this.on('refreshToken', async (req) => {
+        const { refreshToken } = req.data;
+
+        try {
+            const result = await refreshAccessToken(refreshToken);
+
+            return {
+                ok: true,
+                accessToken: result.accessToken
+            };
+        } catch (error) {
+            logger.error('Token refresh failed', { error: error.message });
+            return req.reject(401, error.message);
         }
     });
 
@@ -85,24 +76,21 @@ module.exports = cds.service.impl(async function () {
             // Si no se proporciona requestedBy_ID, buscar por email del usuario autenticado
             if (!req.data.requestedBy_ID) {
                 const userEmail = req.user?.attr?.email || req.user?.email || 'requester@example.com';
-                
+
                 try {
                     // Buscar el usuario en la base de datos
                     // Intentamos usar la entidad del servicio primero
                     const user = await SELECT.one.from(Users).where({ email: userEmail });
                     if (user && user.ID) {
                         req.data.requestedBy_ID = user.ID;
-                        // eslint-disable-next-line no-console
-                        console.log(`Found user ${user.ID} for email ${userEmail}`);
+                        logger.debug('Found user for request', { userId: user.ID, email: userEmail });
                     } else {
                         // Si no se encuentra, usar el usuario requester por defecto (ID: '3')
                         req.data.requestedBy_ID = '3';
-                        // eslint-disable-next-line no-console
-                        console.log(`User not found for email ${userEmail}, using default requester (ID: 3)`);
+                        logger.warn('User not found, using default requester', { email: userEmail });
                     }
                 } catch (error) {
-                    // eslint-disable-next-line no-console
-                    console.warn('Error finding user, using default requester:', error.message);
+                    logger.warn('Error finding user, using default requester', { error: error.message });
                     // Usar el usuario requester por defecto (ID: '3') - esto asegura que siempre haya un usuario
                     req.data.requestedBy_ID = '3';
                 }
@@ -111,12 +99,11 @@ module.exports = cds.service.impl(async function () {
             // Remover campos que no existen en el schema (assetCode, assetLocation)
             delete req.data.assetCode;
             delete req.data.assetLocation;
-            
+
             req.data.createdAt = new Date().toISOString();
             req.data.status = req.data.status || 'OPEN';
-            
-            // eslint-disable-next-line no-console
-            console.log('Creating maintenance request with data:', {
+
+            logger.info('Creating maintenance request', {
                 title: req.data.title,
                 asset_ID: req.data.asset_ID,
                 requestedBy_ID: req.data.requestedBy_ID,
@@ -208,8 +195,7 @@ module.exports = cds.service.impl(async function () {
 
     // Log para debugging de las lecturas
     this.before('READ', 'MaintenanceRequests', (req) => {
-        // eslint-disable-next-line no-console
-        console.log('Reading MaintenanceRequests', req.query?.SELECT?.columns);
+        logger.debug('Reading MaintenanceRequests', { columns: req.query?.SELECT?.columns });
     });
 
     // Los campos calculados (assetCode, technicianName, requesterName) 

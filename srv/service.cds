@@ -14,5 +14,12 @@ service MaintenanceService {
             name: String;
             role: String;
         };
+        accessToken: String;
+        refreshToken: String;
+    };
+    
+    action refreshToken(refreshToken: String) returns {
+        ok: Boolean;
+        accessToken: String;
     };
 }
