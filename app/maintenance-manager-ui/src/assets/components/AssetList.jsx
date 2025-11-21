@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PlusIcon, TrashIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, SparklesIcon, PencilIcon } from '@heroicons/react/24/outline';
 import api from '../../api';
 
 export default function AssetList() {
@@ -9,6 +9,7 @@ export default function AssetList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState({ code: '', name: '', location: '', info: '', status: 1 });
   const [bulk, setBulk] = useState('');
+  const [editingAsset, setEditingAsset] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -52,6 +53,57 @@ export default function AssetList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const editAsset = (asset) => {
+    setEditingAsset(asset);
+    setForm({
+      code: asset.code,
+      name: asset.name,
+      location: asset.location,
+      info: asset.info || '',
+      status: asset.status
+    });
+    setIsFormOpen(true);
+  };
+
+  const updateAsset = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = {
+        code: form.code,
+        name: form.name || `Activo ${form.code}`,
+        location: form.location || 'Sin ubicación',
+        info: form.info || null,
+        status: Number(form.status) || 1,
+      };
+      await api.patch(`/Assets('${editingAsset.ID}')`, payload);
+      setForm({ code: '', name: '', location: '', info: '', status: 1 });
+      setEditingAsset(null);
+      setIsFormOpen(false);
+      load();
+    } catch (err) {
+      console.error('Error updating asset:', err);
+      setError('Error al actualizar activo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    if (editingAsset) {
+      updateAsset(e);
+    } else {
+      createAsset(e);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingAsset(null);
+    setForm({ code: '', name: '', location: '', info: '', status: 1 });
   };
 
   const createBulk = async () => {
@@ -190,9 +242,20 @@ export default function AssetList() {
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{a.location}</td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{a.status === 1 ? 'Activo' : 'Inactivo'}</td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <button onClick={() => deleteAsset(a.ID)} className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700">
-                            <TrashIcon className="h-4 w-4" /> Eliminar
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => editAsset(a)} 
+                              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+                            >
+                              <PencilIcon className="h-4 w-4" /> Editar
+                            </button>
+                            <button 
+                              onClick={() => deleteAsset(a.ID)} 
+                              className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
+                            >
+                              <TrashIcon className="h-4 w-4" /> Eliminar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -204,20 +267,53 @@ export default function AssetList() {
         </div>
       </div>
 
-      {/* Single create modal */}
+      {/* Single create/edit modal */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/40" onClick={() => setIsFormOpen(false)} />
+          <div className="fixed inset-0 bg-black/40" onClick={handleCloseForm} />
           <div className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">Crear activo</h3>
-            <form className="mt-4 flex flex-col gap-3" onSubmit={createAsset}>
-              <input className="border p-2 rounded-md" placeholder="Código (ej: AC-001)" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} required />
-              <input className="border p-2 rounded-md" placeholder="Nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <input className="border p-2 rounded-md" placeholder="Ubicación" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-              <input className="border p-2 rounded-md" placeholder="Info" value={form.info} onChange={(e) => setForm({ ...form, info: e.target.value })} />
+            <h3 className="text-lg font-semibold">
+              {editingAsset ? 'Editar activo' : 'Crear activo'}
+            </h3>
+            <form className="mt-4 flex flex-col gap-3" onSubmit={handleSubmit}>
+              <input 
+                className="border p-2 rounded-md" 
+                placeholder="Código (ej: AC-001)" 
+                value={form.code} 
+                onChange={(e) => setForm({ ...form, code: e.target.value })} 
+                required 
+              />
+              <input 
+                className="border p-2 rounded-md" 
+                placeholder="Nombre" 
+                value={form.name} 
+                onChange={(e) => setForm({ ...form, name: e.target.value })} 
+              />
+              <input 
+                className="border p-2 rounded-md" 
+                placeholder="Ubicación" 
+                value={form.location} 
+                onChange={(e) => setForm({ ...form, location: e.target.value })} 
+              />
+              <input 
+                className="border p-2 rounded-md" 
+                placeholder="Info" 
+                value={form.info} 
+                onChange={(e) => setForm({ ...form, info: e.target.value })} 
+              />
+              <select 
+                className="border p-2 rounded-md" 
+                value={form.status} 
+                onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}
+              >
+                <option value={1}>Activo</option>
+                <option value={0}>Inactivo</option>
+              </select>
               <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsFormOpen(false)} className="rounded-md px-3 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white">Crear</button>
+                <button type="button" onClick={handleCloseForm} className="rounded-md px-3 py-2 text-sm">Cancelar</button>
+                <button type="submit" className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white">
+                  {editingAsset ? 'Actualizar' : 'Crear'}
+                </button>
               </div>
             </form>
           </div>

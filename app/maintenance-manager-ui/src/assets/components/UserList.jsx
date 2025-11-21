@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import api from '../../api';
 
 const roles = [
@@ -14,6 +14,7 @@ export default function UserList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -54,6 +55,47 @@ export default function UserList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const editUser = (user) => {
+    setEditingUser(user);
+    setForm({
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+    setIsFormOpen(true);
+  };
+
+  const updateUser = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await api.patch(`/Users('${editingUser.ID}')`, form);
+      setForm({ name: '', email: '', role: 'REQUESTER' });
+      setEditingUser(null);
+      setIsFormOpen(false);
+      load();
+    } catch (err) {
+      console.error('Error updating user:', err);
+      setError('Error al actualizar usuario');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    if (editingUser) {
+      updateUser(e);
+    } else {
+      createUser(e);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingUser(null);
+    setForm({ name: '', email: '', role: 'REQUESTER' });
   };
 
   const deleteUser = async (id) => {
@@ -136,13 +178,22 @@ export default function UserList() {
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{u.email}</td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{u.role}</td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <button
-                            onClick={() => deleteUser(u.ID)}
-                            className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                            Eliminar
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => editUser(u)}
+                              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => deleteUser(u.ID)}
+                              className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                              Eliminar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -157,10 +208,12 @@ export default function UserList() {
       {/* Modal form */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/40" onClick={() => setIsFormOpen(false)} />
+          <div className="fixed inset-0 bg-black/40" onClick={handleCloseForm} />
           <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">Crear usuario</h3>
-            <form className="mt-4 flex flex-col gap-3" onSubmit={createUser}>
+            <h3 className="text-lg font-semibold">
+              {editingUser ? 'Editar usuario' : 'Crear usuario'}
+            </h3>
+            <form className="mt-4 flex flex-col gap-3" onSubmit={handleSubmit}>
               <input
                 className="border p-2 rounded-md"
                 placeholder="Nombre"
@@ -185,8 +238,10 @@ export default function UserList() {
               </select>
 
               <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsFormOpen(false)} className="rounded-md px-3 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white">Crear</button>
+                <button type="button" onClick={handleCloseForm} className="rounded-md px-3 py-2 text-sm">Cancelar</button>
+                <button type="submit" className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white">
+                  {editingUser ? 'Actualizar' : 'Crear'}
+                </button>
               </div>
             </form>
           </div>
