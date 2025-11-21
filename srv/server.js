@@ -44,8 +44,13 @@ cds.on('served', async () => {
                 }
 
                 try {
-                    const { Users } = srv.entities;
-                    const user = await SELECT.one.from(Users).where({ email, isActive: true });
+                    // Query the database directly to bypass any hooks that filter passwords
+                    const user = await cds.db.run(SELECT.one.from('mm_Users').where({ email, isActive: true }));
+                    
+                    // eslint-disable-next-line no-console
+                    console.log('Found user:', user ? 'YES' : 'NO', user ? `ID: ${user.ID}` : '');
+                    // eslint-disable-next-line no-console
+                    console.log('User has password:', user ? (user.password ? 'YES' : 'NO') : 'N/A');
                     
                     if (!user) {
                         // eslint-disable-next-line no-console
@@ -69,7 +74,7 @@ cds.on('served', async () => {
                 } catch (error) {
                     // eslint-disable-next-line no-console
                     console.error('Authentication error:', error);
-                    req.reject(500, 'Authentication failed');
+                    return req.reject(500, 'Authentication failed');
                 }
             });
 
@@ -136,9 +141,13 @@ cds.on('served', async () => {
                 console.log('Updating user:', req.data.ID);
             });
 
-            // Hide password in all Users responses
-            srv.after('READ', 'Users', (each) => {
-                delete each.password;
+            // Hide password in all Users responses (except for internal authentication)
+            srv.after('READ', 'Users', (each, req) => {
+                // Don't hide password if this is called from within an action context
+                // Check if this is being called from authenticate action
+                if (!req._isInternalAuthQuery) {
+                    delete each.password;
+                }
             });
 
             // Delete User (soft delete)

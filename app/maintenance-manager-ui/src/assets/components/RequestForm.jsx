@@ -3,7 +3,7 @@ import { Dialog } from '@headlessui/react';
 import { ExclamationTriangleIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
 import api from '../../api';
 
-export default function RequestForm({ onCreated, open, onClose }) {
+export default function RequestForm({ onCreated, open, onClose, editingRequest }) {
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -15,6 +15,30 @@ export default function RequestForm({ onCreated, open, onClose }) {
 
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState([]);
+  
+  // Effect to populate form when editing
+  useEffect(() => {
+    if (editingRequest) {
+      setForm({
+        title: editingRequest.title || '',
+        description: editingRequest.description || '',
+        priority: editingRequest.priority?.toString() || '2',
+        assignedTo: editingRequest.assignedTo_ID || '',
+        assetCode: editingRequest.asset_ID || '',
+        assetLocation: ''
+      });
+    } else {
+      // Reset form when creating new
+      setForm({
+        title: '',
+        description: '',
+        priority: '2',
+        assignedTo: '',
+        assetCode: '',
+        assetLocation: ''
+      });
+    }
+  }, [editingRequest, open]);
   
   useEffect(() => {
     const fetchAssets = async () => {
@@ -118,9 +142,17 @@ export default function RequestForm({ onCreated, open, onClose }) {
         priority: parseInt(form.priority),
         asset_ID: assetId
       };
-      
-      const response = await api.post('/MaintenanceRequests', payload);
-      console.log('Solicitud creada:', response.data);
+
+      let response;
+      if (editingRequest) {
+        // Update existing request
+        response = await api.patch(`/MaintenanceRequests('${editingRequest.ID}')`, payload);
+        console.log('Solicitud actualizada:', response.data);
+      } else {
+        // Create new request
+        response = await api.post('/MaintenanceRequests', payload);
+        console.log('Solicitud creada:', response.data);
+      }
       
       // Limpiar el formulario
       setForm({
@@ -160,7 +192,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
               </div>
               <div className="mt-3 text-center sm:mt-5">
                 <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                  Nueva Solicitud de Mantenimiento
+                  {editingRequest ? 'Editar Solicitud de Mantenimiento' : 'Nueva Solicitud de Mantenimiento'}
                 </Dialog.Title>
               </div>
             </div>
@@ -325,7 +357,7 @@ export default function RequestForm({ onCreated, open, onClose }) {
                       Guardando...
                     </>
                   ) : (
-                    'Guardar Solicitud'
+                    editingRequest ? 'Actualizar Solicitud' : 'Guardar Solicitud'
                   )}
                 </button>
               </div>

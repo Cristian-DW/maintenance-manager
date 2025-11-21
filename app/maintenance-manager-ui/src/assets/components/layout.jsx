@@ -15,8 +15,8 @@ import {
 const baseNavigation = [
   { name: 'Panel de Control', href: '/', icon: HomeIcon },
   { name: 'Solicitudes', href: '/requests', icon: ClipboardDocumentListIcon },
-  { name: 'Activos', href: '/assets', icon: WrenchIcon, roles: ['MANAGER', 'TECH'] },
-  { name: 'Usuarios', href: '/users', icon: UserGroupIcon, roles: ['MANAGER'] },
+  { name: 'Activos', href: '/assets', icon: WrenchIcon, roles: ['ADMIN', 'MANAGER', 'TECH'] },
+  { name: 'Usuarios', href: '/users', icon: UserGroupIcon, roles: ['ADMIN', 'MANAGER'] },
 ];
 
 export default function Layout({ children }) {

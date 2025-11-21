@@ -27,6 +27,7 @@ export default function RequestList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingRequest, setEditingRequest] = useState(null);
 
   const load = async () => {
     try {
@@ -86,6 +87,41 @@ export default function RequestList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Delete request
+  const deleteRequest = async (id) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta solicitud?')) {
+      return;
+    }
+    
+    try {
+      await api.delete(`/MaintenanceRequests('${id}')`);
+      load(); // Reload the list
+    } catch (err) {
+      console.error('Error deleting request:', err);
+      alert('Error al eliminar la solicitud');
+    }
+  };
+
+  // Update request status
+  const updateStatus = async (id, newStatus) => {
+    try {
+      await api.patch(`/MaintenanceRequests('${id}')`, { 
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+      load(); // Reload the list
+    } catch (err) {
+      console.error('Error updating request:', err);
+      alert('Error al actualizar la solicitud');
+    }
+  };
+
+  // Edit request
+  const editRequest = (request) => {
+    setEditingRequest(request);
+    setIsFormOpen(true);
   };
 
   // Cargar las solicitudes al montar el componente y cuando se crea una nueva
@@ -212,12 +248,31 @@ export default function RequestList() {
                             )}
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <button
-                              type="button"
-                              className="text-primary-600 hover:text-primary-900"
-                            >
-                              Editar
-                            </button>
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                type="button"
+                                className="text-primary-600 hover:text-primary-900"
+                                onClick={() => editRequest(request)}
+                              >
+                                Editar
+                              </button>
+                              <select
+                                value={request.status || 'OPEN'}
+                                onChange={(e) => updateStatus(request.ID, e.target.value)}
+                                className="text-xs border rounded px-1"
+                              >
+                                <option value="OPEN">Abierta</option>
+                                <option value="IN_PROGRESS">En Progreso</option>
+                                <option value="DONE">Terminada</option>
+                              </select>
+                              <button
+                                type="button"
+                                className="text-red-600 hover:text-red-900"
+                                onClick={() => deleteRequest(request.ID)}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -232,11 +287,16 @@ export default function RequestList() {
 
       <RequestForm
         open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingRequest(null);
+        }}
         onCreated={() => {
           setIsFormOpen(false);
+          setEditingRequest(null);
           load();
         }}
+        editingRequest={editingRequest}
       />
     </div>
   );
