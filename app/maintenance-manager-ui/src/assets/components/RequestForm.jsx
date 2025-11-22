@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { ExclamationTriangleIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
-import api from '../../api';
+import { useAllAssets, useCreateMaintenanceRequest, useUpdateMaintenanceRequest, useTechUsers } from '../../hooks/useQueries';
 
 export default function RequestForm({ onCreated, open, onClose, editingRequest }) {
   const [form, setForm] = useState({
@@ -13,9 +13,14 @@ export default function RequestForm({ onCreated, open, onClose, editingRequest }
     assetLocation: ''
   });
 
-  const [loading, setLoading] = useState(false);
-  const [assets, setAssets] = useState([]);
-  
+  // Use React Query hooks
+  const { data: assets = [], isLoading: assetsLoading } = useAllAssets();
+  const { data: techUsers = [], isLoading: techUsersLoading } = useTechUsers();
+  const createMutation = useCreateMaintenanceRequest();
+  const updateMutation = useUpdateMaintenanceRequest();
+
+  const loading = createMutation.isPending || updateMutation.isPending;
+
   // Effect to populate form when editing
   useEffect(() => {
     if (editingRequest) {
@@ -39,70 +44,6 @@ export default function RequestForm({ onCreated, open, onClose, editingRequest }
       });
     }
   }, [editingRequest, open]);
-  
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        console.log('Iniciando petición de activos...');
-        
-        const response = await api.get('/Assets');
-        
-        console.log('Respuesta completa:', response);
-        
-        if (response.data && Array.isArray(response.data.value)) {
-          const validAssets = response.data.value.map(asset => ({
-            ...asset,
-            name: asset.name || asset.info || 'Sin nombre',
-            status: asset.status ?? 1
-          }));
-          
-          console.log('Assets procesados:', validAssets);
-          
-          const activeAssets = validAssets.filter(asset => asset.status === 1);
-          console.log('Assets activos:', activeAssets);
-          
-          if (activeAssets.length === 0) {
-            console.warn('No se encontraron activos activos');
-          }
-          
-          setAssets(activeAssets);
-        } else {
-          console.error('Formato de respuesta inesperado:', response.data);
-          throw new Error('Formato de respuesta inválido');
-        }
-      } catch (error) {
-        console.error('Error al cargar activos:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-          config: error.config
-        });
-        
-        setAssets([]);
-        
-        let errorMessage = 'Error al cargar los activos. ';
-        if (error.response) {
-          if (error.response.status === 401) {
-            errorMessage += 'Error de autenticación.';
-          } else if (error.response.status === 404) {
-            errorMessage += 'Servicio no encontrado.';
-          } else {
-            errorMessage += `Error ${error.response.status}: ${error.response.data?.error?.message || 'Error desconocido'}`;
-          }
-        } else if (error.request) {
-          errorMessage += 'No se pudo conectar con el servidor.';
-        } else {
-          errorMessage += error.message;
-        }
-        
-        alert(errorMessage + ' Por favor, intente de nuevo.');
-      }
-    };
-    
-    if (open) {
-      fetchAssets();
-    }
-  }, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -120,41 +61,41 @@ export default function RequestForm({ onCreated, open, onClose, editingRequest }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+
     try {
-      // Primero obtenemos el ID del activo basado en el código
-      let assetId = null;
-      try {
-        const assetsResponse = await api.get(`/Assets?$filter=code eq '${form.assetCode}'`);
-        if (assetsResponse.data.value && assetsResponse.data.value.length > 0) {
-          assetId = assetsResponse.data.value[0].ID;
-        } else {
-          throw new Error('Asset not found');
-        }
-      } catch (assetError) {
-        console.error('Error finding asset:', assetError);
-        throw new Error('No se encontró el activo con el código proporcionado');
+      // Find asset ID based on code
+      const selectedAsset = assets.find(asset => asset.code === form.assetCode);
+
+      if (!selectedAsset) {
+        alert('No se encontró el activo con el código proporcionado');
+        return;
       }
 
       const payload = {
         title: form.title,
         description: form.description,
         priority: parseInt(form.priority),
-        asset_ID: assetId
+        asset_ID: selectedAsset.ID
       };
 
-      let response;
+      if (form.assignedTo) {
+        payload.assignedTo_ID = form.assignedTo;
+        payload.status = 'ASSIGNED';
+      } else {
+        payload.status = 'OPEN';
+      }
+
       if (editingRequest) {
         // Update existing request
-        response = await api.patch(`/MaintenanceRequests('${editingRequest.ID}')`, payload);
-        console.log('Solicitud actualizada:', response.data);
+        await updateMutation.mutateAsync({ id: editingRequest.ID, data: payload });
+        console.log('Solicitud actualizada');
       } else {
         // Create new request
-        response = await api.post('/MaintenanceRequests', payload);
-        console.log('Solicitud creada:', response.data);
+        await createMutation.mutateAsync(payload);
+        console.log('Solicitud creada');
       }
-      
-      // Limpiar el formulario
+
+      // Clear form
       setForm({
         title: '',
         description: '',
@@ -164,19 +105,12 @@ export default function RequestForm({ onCreated, open, onClose, editingRequest }
         assetLocation: ''
       });
 
-      // Notificar que se creó la solicitud y cerrar el modal
+      // Notify parent and close
       if (typeof onCreated === 'function') onCreated();
       onClose();
     } catch (error) {
       console.error('Error creating request:', error);
-      if (error.response) {
-        console.error('Error details:', error.response.data);
-        alert(`Error al crear la solicitud: ${error.response.data.error?.message || 'Error desconocido'}`);
-      } else {
-        alert(error.message || 'Error al crear la solicitud');
-      }
-    } finally {
-      setLoading(false);
+      alert(error.message || 'Error al crear/actualizar la solicitud');
     }
   };
 
@@ -304,15 +238,20 @@ export default function RequestForm({ onCreated, open, onClose, editingRequest }
                     Asignar a
                   </label>
                   <div className="mt-2">
-                    <input
-                      type="text"
+                    <select
                       name="assignedTo"
                       id="assignedTo"
-                      className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                      placeholder="Nombre del responsable"
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
                       onChange={handleChange}
                       value={form.assignedTo}
-                    />
+                    >
+                      <option value="">Sin asignar</option>
+                      {techUsers.map((user) => (
+                        <option key={user.ID} value={user.ID}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>

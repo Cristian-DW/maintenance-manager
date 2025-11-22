@@ -57,6 +57,27 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const register = async ({ name, email, password }) => {
+    if (!name || !email || !password) {
+      return { ok: false, message: 'Name, email, and password are required' };
+    }
+
+    try {
+      const res = await api.post('/odata/v4/maintenance/register', { name, email, password });
+
+      if (res.data && res.data.ok) {
+        // Auto login after registration
+        return login({ email, password });
+      } else {
+        return { ok: false, message: res.data?.message || 'Registration failed' };
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      const errorMsg = err.response?.data?.error?.message || err.message || 'Registration failed';
+      return { ok: false, message: errorMsg };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -110,7 +131,7 @@ export function AuthProvider({ children }) {
 
   return React.createElement(
     AuthContext.Provider,
-    { value: { user, loading, login, logout, refreshAccessToken, updateProfile } },
+    { value: { user, loading, login, register, logout, refreshAccessToken, updateProfile } },
     children
   );
 }

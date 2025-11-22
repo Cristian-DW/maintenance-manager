@@ -26,6 +26,8 @@ const AssetList = lazy(() => import('./assets/components/AssetList'));
 const Login = lazy(() => import('./assets/components/Login'));
 const Profile = lazy(() => import('./assets/components/Profile'));
 
+const LandingPage = lazy(() => import('./assets/components/LandingPage'));
+
 // Loading fallback component
 function LoadingFallback() {
   return (
@@ -36,7 +38,7 @@ function LoadingFallback() {
 }
 
 const navigation = [
-  { name: 'Panel de Control', href: '/', icon: HomeIcon, current: true },
+  { name: 'Panel de Control', href: '/dashboard', icon: HomeIcon, current: true },
   { name: 'Solicitudes', href: '/requests', icon: WrenchScrewdriverIcon, current: false },
   { name: 'Activos', href: '/assets', icon: BuildingOfficeIcon, current: false },
   { name: 'Usuarios', href: '/users', icon: UserIcon, current: false },
@@ -55,52 +57,68 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <Layout
-          navigation={navigation}
-          pageTitle="Gestor de Solicitudes de Mantenimiento"
-          currentPage={navigation.find(nav => nav.current)?.name || 'Panel de Control'}
-        >
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/requests" element={
-                <ProtectedRoute>
-                  <div className="py-6">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                      <RequestList key={reload} />
-                      <RequestForm
-                        open={isFormOpen}
-                        onClose={() => setIsFormOpen(false)}
-                        onCreated={handleRequestCreated}
-                      />
-                    </div>
-                  </div>
-                </ProtectedRoute>
-              } />
-              <Route path="/assets" element={
-                <ProtectedRoute>
-                  <AssetList />
-                </ProtectedRoute>
-              } />
-              <Route path="/users" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <UserList />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </Layout>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <LandingPage />
+            </Suspense>
+          } />
+          <Route path="/login" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <Login />
+            </Suspense>
+          } />
+
+          {/* Protected Routes */}
+          <Route path="/*" element={
+            <Layout
+              navigation={navigation}
+              pageTitle="Gestor de Solicitudes de Mantenimiento"
+              currentPage={navigation.find(nav => nav.current)?.name || 'Panel de Control'}
+            >
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/requests" element={
+                    <ProtectedRoute>
+                      <div className="py-6">
+                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                          <RequestList key={reload} />
+                          <RequestForm
+                            open={isFormOpen}
+                            onClose={() => setIsFormOpen(false)}
+                            onCreated={handleRequestCreated}
+                          />
+                        </div>
+                      </div>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/assets" element={
+                    <ProtectedRoute>
+                      <AssetList />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/users" element={
+                    <ProtectedRoute requiredRole="ADMIN">
+                      <UserList />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          } />
+        </Routes>
       </Router>
     </QueryClientProvider>
   );

@@ -144,6 +144,20 @@ export function useUsers() {
 }
 
 /**
+ * Hook to fetch tech users
+ */
+export function useTechUsers() {
+    return useQuery({
+        queryKey: ['users', 'tech'],
+        queryFn: async () => {
+            const res = await api.get("/Users?$filter=role eq 'TECH'");
+            return res.data?.value || res.data || [];
+        },
+        staleTime: 300000 // 5 minutes
+    });
+}
+
+/**
  * Hook to fetch dashboard statistics
  */
 export function useDashboardStats() {

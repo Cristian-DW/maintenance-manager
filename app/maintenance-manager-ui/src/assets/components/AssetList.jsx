@@ -1,40 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { PlusIcon, TrashIcon, SparklesIcon, PencilIcon } from '@heroicons/react/24/outline';
-import api from '../../api';
+import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '../../hooks/useQueries';
 
 export default function AssetList() {
-  const [assets, setAssets] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState({ code: '', name: '', location: '', info: '', status: 1 });
   const [bulk, setBulk] = useState('');
   const [editingAsset, setEditingAsset] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.get('/Assets');
-      let data = [];
-      if (res.data?.value) data = res.data.value;
-      else if (Array.isArray(res.data)) data = res.data;
-      else if (res.data) data = [res.data];
-      setAssets(data);
-    } catch (err) {
-      console.error('Error loading assets:', err);
-      setError('Error al cargar activos');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use React Query hooks
+  const { data, isLoading: loading, error: queryError } = useAssets(0, 1000);
+  const createMutation = useCreateAsset();
+  const updateMutation = useUpdateAsset();
+  const deleteMutation = useDeleteAsset();
 
-  useEffect(() => { load(); }, []);
+  const assets = data?.data || [];
+  const error = queryError?.message || null;
 
   const createAsset = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
     try {
       const payload = {
         code: form.code,
@@ -43,15 +27,12 @@ export default function AssetList() {
         info: form.info || null,
         status: Number(form.status) || 1,
       };
-      await api.post('/Assets', payload);
+      await createMutation.mutateAsync(payload);
       setForm({ code: '', name: '', location: '', info: '', status: 1 });
       setIsFormOpen(false);
-      load();
     } catch (err) {
       console.error('Error creating asset:', err);
-      setError('Error al crear activo');
-    } finally {
-      setLoading(false);
+      alert('Error al crear activo');
     }
   };
 
@@ -69,8 +50,6 @@ export default function AssetList() {
 
   const updateAsset = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
     try {
       const payload = {
         code: form.code,
@@ -79,16 +58,13 @@ export default function AssetList() {
         info: form.info || null,
         status: Number(form.status) || 1,
       };
-      await api.patch(`/Assets('${editingAsset.ID}')`, payload);
+      await updateMutation.mutateAsync({ id: editingAsset.ID, data: payload });
       setForm({ code: '', name: '', location: '', info: '', status: 1 });
       setEditingAsset(null);
       setIsFormOpen(false);
-      load();
     } catch (err) {
       console.error('Error updating asset:', err);
-      setError('Error al actualizar activo');
-    } finally {
-      setLoading(false);
+      alert('Error al actualizar activo');
     }
   };
 
@@ -108,37 +84,28 @@ export default function AssetList() {
 
   const createBulk = async () => {
     if (!bulk.trim()) return;
-    setLoading(true);
-    setError(null);
     try {
       // Accept comma, newline or space separated codes
       const raw = bulk.split(/[,\n\s]+/).map(s => s.trim()).filter(Boolean);
-      const ops = raw.map(code => {
+      const promises = raw.map(code => {
         const payload = { code, name: `Activo ${code}`, location: 'Sin ubicación', status: 1 };
-        return api.post('/Assets', payload);
+        return createMutation.mutateAsync(payload);
       });
-      await Promise.all(ops);
+      await Promise.all(promises);
       setBulk('');
-      load();
     } catch (err) {
       console.error('Error creating bulk assets:', err);
-      setError('Error al crear activos por lote');
-    } finally {
-      setLoading(false);
+      alert('Error al crear activos por lote');
     }
   };
 
   const deleteAsset = async (id) => {
     if (!window.confirm('¿Seguro que deseas eliminar este activo?')) return;
-    setLoading(true);
     try {
-      await api.delete(`/Assets('${id}')`);
-      load();
+      await deleteMutation.mutateAsync(id);
     } catch (err) {
       console.error('Error deleting asset:', err);
-      setError('Error al eliminar activo');
-    } finally {
-      setLoading(false);
+      alert('Error al eliminar activo');
     }
   };
 
@@ -177,7 +144,7 @@ export default function AssetList() {
               <textarea
                 value={bulk}
                 onChange={(e) => setBulk(e.target.value)}
-                placeholder="Pega o escribe varios códigos: AC-101, AC-102" 
+                placeholder="Pega o escribe varios códigos: AC-101, AC-102"
                 className="w-full h-28 resize-none rounded-md border p-2"
               />
               <div className="mt-3 flex justify-end gap-2">
@@ -243,14 +210,14 @@ export default function AssetList() {
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{a.status === 1 ? 'Activo' : 'Inactivo'}</td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <div className="flex items-center justify-end gap-2">
-                            <button 
-                              onClick={() => editAsset(a)} 
+                            <button
+                              onClick={() => editAsset(a)}
                               className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
                             >
                               <PencilIcon className="h-4 w-4" /> Editar
                             </button>
-                            <button 
-                              onClick={() => deleteAsset(a.ID)} 
+                            <button
+                              onClick={() => deleteAsset(a.ID)}
                               className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
                             >
                               <TrashIcon className="h-4 w-4" /> Eliminar
@@ -276,34 +243,34 @@ export default function AssetList() {
               {editingAsset ? 'Editar activo' : 'Crear activo'}
             </h3>
             <form className="mt-4 flex flex-col gap-3" onSubmit={handleSubmit}>
-              <input 
-                className="border p-2 rounded-md" 
-                placeholder="Código (ej: AC-001)" 
-                value={form.code} 
-                onChange={(e) => setForm({ ...form, code: e.target.value })} 
-                required 
+              <input
+                className="border p-2 rounded-md"
+                placeholder="Código (ej: AC-001)"
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value })}
+                required
               />
-              <input 
-                className="border p-2 rounded-md" 
-                placeholder="Nombre" 
-                value={form.name} 
-                onChange={(e) => setForm({ ...form, name: e.target.value })} 
+              <input
+                className="border p-2 rounded-md"
+                placeholder="Nombre"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
-              <input 
-                className="border p-2 rounded-md" 
-                placeholder="Ubicación" 
-                value={form.location} 
-                onChange={(e) => setForm({ ...form, location: e.target.value })} 
+              <input
+                className="border p-2 rounded-md"
+                placeholder="Ubicación"
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
               />
-              <input 
-                className="border p-2 rounded-md" 
-                placeholder="Info" 
-                value={form.info} 
-                onChange={(e) => setForm({ ...form, info: e.target.value })} 
+              <input
+                className="border p-2 rounded-md"
+                placeholder="Info"
+                value={form.info}
+                onChange={(e) => setForm({ ...form, info: e.target.value })}
               />
-              <select 
-                className="border p-2 rounded-md" 
-                value={form.status} 
+              <select
+                className="border p-2 rounded-md"
+                value={form.status}
                 onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}
               >
                 <option value={1}>Activo</option>

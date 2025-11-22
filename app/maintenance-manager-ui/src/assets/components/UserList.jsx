@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
-import api from '../../api';
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '../../hooks/useQueries';
 
 const roles = [
   { value: 'MANAGER', label: 'Manager' },
@@ -9,51 +9,27 @@ const roles = [
 ];
 
 export default function UserList() {
-  const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ name: '', email: '', role: 'REQUESTER' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.get('/Users');
-      let data = [];
-      if (res.data?.value) data = res.data.value;
-      else if (Array.isArray(res.data)) data = res.data;
-      else if (res.data) data = [res.data];
-      setUsers(data);
-    } catch (err) {
-      console.error('Error loading users:', err);
-      let msg = 'Error al cargar los usuarios';
-      if (err.response?.status === 401) msg = 'No autorizado';
-      else if (err.message) msg = err.message;
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use React Query hooks
+  const { data: users = [], isLoading: loading, error: queryError } = useUsers();
+  const createMutation = useCreateUser();
+  const updateMutation = useUpdateUser();
+  const deleteMutation = useDeleteUser();
 
-  useEffect(() => {
-    load();
-  }, []);
+  const error = queryError?.message || null;
 
   const createUser = async (e) => {
     e.preventDefault();
-    setLoading(true);
     try {
-      await api.post('/Users', form);
+      await createMutation.mutateAsync(form);
       setForm({ name: '', email: '', role: 'REQUESTER' });
       setIsFormOpen(false);
-      load();
     } catch (err) {
       console.error('Error creating user:', err);
-      setError('Error al crear usuario');
-    } finally {
-      setLoading(false);
+      alert('Error al crear usuario');
     }
   };
 
@@ -69,18 +45,14 @@ export default function UserList() {
 
   const updateUser = async (e) => {
     e.preventDefault();
-    setLoading(true);
     try {
-      await api.patch(`/Users('${editingUser.ID}')`, form);
+      await updateMutation.mutateAsync({ id: editingUser.ID, data: form });
       setForm({ name: '', email: '', role: 'REQUESTER' });
       setEditingUser(null);
       setIsFormOpen(false);
-      load();
     } catch (err) {
       console.error('Error updating user:', err);
-      setError('Error al actualizar usuario');
-    } finally {
-      setLoading(false);
+      alert('Error al actualizar usuario');
     }
   };
 
@@ -100,16 +72,11 @@ export default function UserList() {
 
   const deleteUser = async (id) => {
     if (!window.confirm('¿Seguro que deseas eliminar este usuario?')) return;
-    setLoading(true);
     try {
-      // Use OData key syntax - quote the id to be safe for string keys
-      await api.delete(`/Users('${id}')`);
-      load();
+      await deleteMutation.mutateAsync(id);
     } catch (err) {
       console.error('Error deleting user:', err);
-      setError('Error al eliminar usuario');
-    } finally {
-      setLoading(false);
+      alert('Error al eliminar usuario');
     }
   };
 
@@ -236,6 +203,17 @@ export default function UserList() {
               >
                 {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
+
+              {!editingUser && (
+                <input
+                  className="border p-2 rounded-md"
+                  placeholder="Contraseña"
+                  type="password"
+                  value={form.password || ''}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+              )}
 
               <div className="mt-4 flex justify-end gap-2">
                 <button type="button" onClick={handleCloseForm} className="rounded-md px-3 py-2 text-sm">Cancelar</button>

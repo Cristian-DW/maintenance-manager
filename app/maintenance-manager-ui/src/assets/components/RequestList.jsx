@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import api from '../../api';
+import { useMaintenanceRequests, useUpdateMaintenanceRequest, useDeleteMaintenanceRequest } from '../../hooks/useQueries';
 
 const priorityClasses = {
   1: 'bg-green-50 text-green-700 ring-green-600/20',
@@ -23,81 +23,25 @@ const statusClasses = {
 import RequestForm from './RequestForm';
 
 export default function RequestList() {
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
 
-  const load = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-  console.log('Fetching requests from:', 'http://localhost:4004/odata/v4/maintenance/MaintenanceRequests');
-      
-      // Hacer la consulta sin $select para que CAP calcule automáticamente todos los campos proyectados
-      // Los campos calculados (assetCode, technicianName, requesterName) se calculan automáticamente
-      const res = await api.get("/MaintenanceRequests");
-      
-      console.log('API Response:', res);
-      console.log('Response data:', res.data);
-      console.log('Response status:', res.status);
-      
-      // Handle OData response format (OData V4 usa 'value' para colecciones)
-      let requestsData = [];
-      if (res.data?.value) {
-        requestsData = res.data.value;
-      } else if (Array.isArray(res.data)) {
-        requestsData = res.data;
-      } else if (res.data) {
-        // Si es un solo objeto, convertirlo a array
-        requestsData = [res.data];
-      }
-      
-      console.log('Parsed requests:', requestsData);
-      console.log('Number of requests:', requestsData.length);
-      
-      // Verificar que los datos tengan la estructura esperada
-      if (requestsData.length > 0) {
-        console.log('Sample request:', requestsData[0]);
-      }
-      
-      setRequests(requestsData);
-    } catch (err) {
-      console.error('Error loading requests:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        config: err.config
-      });
-      
-      let errorMessage = 'Error al cargar las solicitudes';
-      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMessage = 'Error de conexión. Verifica que el servidor backend esté corriendo en http://localhost:4004 (OData at /odata/v4/maintenance)';
-      } else if (err.response?.status === 401) {
-        errorMessage = 'Error de autenticación. Verifica las credenciales.';
-      } else if (err.response?.data?.error?.message) {
-        errorMessage = err.response.data.error.message;
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use React Query hooks
+  const { data, isLoading: loading, error: queryError } = useMaintenanceRequests(0, 100);
+  const updateMutation = useUpdateMaintenanceRequest();
+  const deleteMutation = useDeleteMaintenanceRequest();
+
+  const requests = data?.data || [];
+  const error = queryError?.message || null;
 
   // Delete request
   const deleteRequest = async (id) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta solicitud?')) {
       return;
     }
-    
+
     try {
-      await api.delete(`/MaintenanceRequests('${id}')`);
-      load(); // Reload the list
+      await deleteMutation.mutateAsync(id);
     } catch (err) {
       console.error('Error deleting request:', err);
       alert('Error al eliminar la solicitud');
@@ -107,11 +51,13 @@ export default function RequestList() {
   // Update request status
   const updateStatus = async (id, newStatus) => {
     try {
-      await api.patch(`/MaintenanceRequests('${id}')`, { 
-        status: newStatus,
-        updatedAt: new Date().toISOString()
+      await updateMutation.mutateAsync({
+        id,
+        data: {
+          status: newStatus,
+          updatedAt: new Date().toISOString()
+        }
       });
-      load(); // Reload the list
     } catch (err) {
       console.error('Error updating request:', err);
       alert('Error al actualizar la solicitud');
@@ -123,11 +69,6 @@ export default function RequestList() {
     setEditingRequest(request);
     setIsFormOpen(true);
   };
-
-  // Cargar las solicitudes al montar el componente y cuando se crea una nueva
-  useEffect(() => {
-    load();
-  }, []);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -216,7 +157,7 @@ export default function RequestList() {
                             <div className="text-gray-500">{request.description || ''}</div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <div className="font-medium text-gray-900">{request.assetCode || 'N/A'}</div>
+                            <div className="font-medium text-gray-900">{request.asset?.code || request.assetCode || 'N/A'}</div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusClasses[request.status] || statusClasses.OPEN}`}>
@@ -230,17 +171,17 @@ export default function RequestList() {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {request.technicianName ? (
+                            {request.assignedTo?.name ? (
                               <div className="flex items-center">
                                 <div className="h-8 w-8 flex-shrink-0">
-                                  <img 
-                                    className="h-8 w-8 rounded-full" 
-                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(request.technicianName)}&background=random`} 
-                                    alt="" 
+                                  <img
+                                    className="h-8 w-8 rounded-full"
+                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(request.assignedTo.name)}&background=random`}
+                                    alt=""
                                   />
                                 </div>
                                 <div className="ml-4">
-                                  <div className="font-medium text-gray-900">{request.technicianName}</div>
+                                  <div className="font-medium text-gray-900">{request.assignedTo.name}</div>
                                 </div>
                               </div>
                             ) : (
@@ -294,7 +235,6 @@ export default function RequestList() {
         onCreated={() => {
           setIsFormOpen(false);
           setEditingRequest(null);
-          load();
         }}
         editingRequest={editingRequest}
       />

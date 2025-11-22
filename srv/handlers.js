@@ -50,6 +50,50 @@ module.exports = cds.service.impl(async function () {
         }
     });
 
+    // Action to register a new user
+    this.on('register', async (req) => {
+        const { name, email, password } = req.data;
+
+        if (!name || !email || !password) {
+            return req.reject(400, 'Name, email, and password are required');
+        }
+
+        try {
+            // Check if user already exists
+            const existingUser = await SELECT.one.from(Users).where({ email });
+            if (existingUser) {
+                return req.reject(409, 'User with this email already exists');
+            }
+
+            // Hash password
+            const hashedPassword = await hashPassword(password);
+
+            // Create user with REQUESTER role
+            const newUser = await cds.transaction(req).run(
+                INSERT.into(Users).entries({
+                    name,
+                    email,
+                    password: hashedPassword,
+                    role: 'REQUESTER'
+                })
+            );
+
+            // Fetch the created user to return (excluding password)
+            const createdUser = await SELECT.one.from(Users).where({ email });
+            delete createdUser.password;
+
+            logger.info('User registered successfully', { email });
+
+            return {
+                ok: true,
+                user: createdUser
+            };
+        } catch (error) {
+            logger.error('Registration failed', { email, error: error.message });
+            return req.reject(500, 'Registration failed');
+        }
+    });
+
     // Middleware para hashear contraseña en CREATE/UPDATE de Users
     this.before(['CREATE', 'UPDATE'], 'Users', async (req) => {
         if (req.data.password) {
@@ -64,9 +108,23 @@ module.exports = cds.service.impl(async function () {
 
     // Middleware para actualizar timestamps y validación
     this.before(['CREATE', 'UPDATE'], 'MaintenanceRequests', async (req) => {
+        console.log('DEBUG: Handling request', req.event, req.data);
         // Validar los datos de entrada
         try {
-            validateRequest('MaintenanceRequest', req.data);
+            // For UPDATE, only validate if the fields are present (partial update)
+            if (req.event === 'UPDATE') {
+                // Skip full validation for partial updates
+                // Only validate if specific fields are being updated
+                if (req.data.title !== undefined && (!req.data.title || req.data.title.length === 0)) {
+                    return req.reject(400, 'Title cannot be empty');
+                }
+                if (req.data.priority !== undefined && (req.data.priority < 1 || req.data.priority > 3)) {
+                    return req.reject(400, 'Priority must be between 1 and 3');
+                }
+            } else {
+                // Full validation for CREATE
+                validateRequest('MaintenanceRequest', req.data);
+            }
         } catch (error) {
             return req.reject(400, error.message, error.details);
         }
@@ -110,7 +168,7 @@ module.exports = cds.service.impl(async function () {
                 priority: req.data.priority
             });
         }
-        req.data.updatedAt = new Date().toISOString();
+        // CAP handles modifiedAt automatically
     });
 
     // Handler para asignar técnico
@@ -133,8 +191,7 @@ module.exports = cds.service.impl(async function () {
                 UPDATE(MaintenanceRequests)
                     .set({
                         assignedTo_ID: technicianId,
-                        status: 'ASSIGNED',
-                        updatedAt: new Date().toISOString()
+                        status: 'ASSIGNED'
                     })
                     .where({ ID: requestId })
             );
@@ -161,8 +218,7 @@ module.exports = cds.service.impl(async function () {
         await cds.transaction(req).run(
             UPDATE(MaintenanceRequests)
                 .set({
-                    status: newStatus,
-                    updatedAt: new Date().toISOString()
+                    status: newStatus
                 })
                 .where({ ID: requestId })
         );
@@ -183,8 +239,7 @@ module.exports = cds.service.impl(async function () {
         await cds.transaction(req).run(
             UPDATE(MaintenanceRequests)
                 .set({
-                    priority: newPriority,
-                    updatedAt: new Date().toISOString()
+                    priority: newPriority
                 })
                 .where({ ID: requestId })
         );
