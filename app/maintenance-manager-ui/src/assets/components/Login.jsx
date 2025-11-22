@@ -23,24 +23,25 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError('');
     setLoading(true);
 
     try {
-      let res;
-      if (isLogin) {
-        res = await login({ email, password });
+      let result;
+      if (!isLogin) {
+        result = await register({ name, email, password });
       } else {
-        res = await register({ name, email, password });
+        result = await login({ email, password });
       }
 
-      if (res.ok) {
+      if (result.ok) {
         navigate('/dashboard', { replace: true });
       } else {
-        setError(res.message || (isLogin ? 'Error al iniciar sesión' : 'Error al registrarse'));
+        setError(result.message || 'Usuario o contraseña incorrectos');
       }
     } catch (err) {
-      setError('Ocurrió un error inesperado');
+      console.error('Authentication error:', err);
+      setError('Usuario o contraseña incorrectos');
     } finally {
       setLoading(false);
     }

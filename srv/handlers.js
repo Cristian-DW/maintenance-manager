@@ -69,7 +69,7 @@ module.exports = cds.service.impl(async function () {
             const hashedPassword = await hashPassword(password);
 
             // Create user with REQUESTER role
-            const newUser = await cds.transaction(req).run(
+            await cds.transaction(req).run(
                 INSERT.into(Users).entries({
                     name,
                     email,
@@ -78,15 +78,11 @@ module.exports = cds.service.impl(async function () {
                 })
             );
 
-            // Fetch the created user to return (excluding password)
-            const createdUser = await SELECT.one.from(Users).where({ email });
-            delete createdUser.password;
-
             logger.info('User registered successfully', { email });
 
             return {
                 ok: true,
-                user: createdUser
+                message: 'User created successfully'
             };
         } catch (error) {
             logger.error('Registration failed', { email, error: error.message });

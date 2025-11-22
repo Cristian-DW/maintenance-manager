@@ -25,6 +25,6 @@ service MaintenanceService {
 
     action register(name: String, email: String, password: String) returns {
         ok: Boolean;
-        user: Users;
+        message: String;
     };
 }

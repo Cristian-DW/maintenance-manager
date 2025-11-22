@@ -13,7 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const baseNavigation = [
-  { name: 'Panel de Control', href: '/', icon: HomeIcon },
+  { name: 'Panel de Control', href: '/dashboard', icon: HomeIcon },
   { name: 'Solicitudes', href: '/requests', icon: ClipboardDocumentListIcon },
   { name: 'Activos', href: '/assets', icon: WrenchIcon, roles: ['ADMIN', 'MANAGER', 'TECH'] },
   { name: 'Usuarios', href: '/users', icon: UserGroupIcon, roles: ['ADMIN', 'MANAGER'] },
@@ -67,7 +67,7 @@ export default function Layout({ children }) {
                   {user ? (
                     <>
                       <button onClick={() => { navigate('/profile'); setSidebarOpen(false); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Mi perfil</button>
-                      <button onClick={() => { logout(); navigate('/login'); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Cerrar sesión</button>
+                      <button onClick={() => { logout(); navigate('/'); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Cerrar sesión</button>
                     </>
                   ) : (
                     <button onClick={() => { navigate('/login'); setSidebarOpen(false); }} className="w-full text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Iniciar sesión</button>
@@ -111,7 +111,7 @@ export default function Layout({ children }) {
                   {user ? (
                     <>
                       <button onClick={() => navigate('/profile')} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Mi perfil</button>
-                      <button onClick={() => { logout(); navigate('/login'); }} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Cerrar sesión</button>
+                      <button onClick={() => { logout(); navigate('/'); }} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Cerrar sesión</button>
                     </>
                   ) : (
                     <button onClick={() => navigate('/login')} className="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">Iniciar sesión</button>

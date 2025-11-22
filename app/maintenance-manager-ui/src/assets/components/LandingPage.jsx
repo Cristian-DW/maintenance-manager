@@ -51,11 +51,6 @@ export default function LandingPage() {
             {/* Hero Section */}
             <div className="relative pt-32 pb-20 sm:pt-48 sm:pb-32 overflow-hidden">
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-sm animate-fade-in-up">
-                        <span className="flex h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse"></span>
-                        <span className="text-sm font-medium text-gray-300">Nueva versión 2.0 disponible</span>
-                    </div>
-
                     <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
                         <span className="block text-white mb-2">Mantenimiento</span>
                         <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-primary-500 to-purple-600">
