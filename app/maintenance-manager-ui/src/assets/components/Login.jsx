@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth';
 
 export default function Login() {
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
+
+  useEffect(() => {
+    if (location.state?.isRegister) {
+      setIsLogin(false);
+    }
+  }, [location.state]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -27,7 +35,7 @@ export default function Login() {
       }
 
       if (res.ok) {
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       } else {
         setError(res.message || (isLogin ? 'Error al iniciar sesión' : 'Error al registrarse'));
       }
