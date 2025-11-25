@@ -48,6 +48,7 @@ export default function RequestList() {
     }
   };
 
+
   // Update request status
   const updateStatus = async (id, newStatus) => {
     try {
@@ -55,7 +56,7 @@ export default function RequestList() {
         id,
         data: {
           status: newStatus,
-          updatedAt: new Date().toISOString()
+          modifiedAt: new Date().toISOString()
         }
       });
     } catch (err) {
