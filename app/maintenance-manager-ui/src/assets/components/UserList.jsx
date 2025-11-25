@@ -14,7 +14,7 @@ export default function UserList() {
   const [editingUser, setEditingUser] = useState(null);
 
   // Use React Query hooks
-  const { data: users = [], isLoading: loading, error: queryError } = useUsers();
+  const { data: users = [], isLoading: loading, error: queryError, refetch } = useUsers();
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
@@ -128,7 +128,7 @@ export default function UserList() {
                         <div className="p-4 text-red-700 bg-red-100 rounded-lg border border-red-300">
                           <p className="font-medium">Error al cargar los usuarios</p>
                           <p className="text-sm mt-1">{error}</p>
-                          <button onClick={load} className="mt-2 text-sm text-red-700 hover:text-red-900 underline">Reintentar</button>
+                          <button onClick={() => refetch()} className="mt-2 text-sm text-red-700 hover:text-red-900 underline">Reintentar</button>
                         </div>
                       </td>
                     </tr>

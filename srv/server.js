@@ -1,6 +1,5 @@
 const cds = require('@sap/cds');
 const cors = require('./cors-middleware');
-const initData = require('./init-data');
 const logger = require('./utils/logger');
 const { apiLimiter } = require('./middleware/rate-limit.middleware');
 const handlers = require('./handlers');
@@ -18,18 +17,17 @@ cds.on('bootstrap', app => {
     app.use(cors);
 });
 
-// Initialize data when service is ready
+// Register handlers when service is ready
 cds.on('served', async () => {
     try {
         const srv = cds.services.MaintenanceService;
         if (srv) {
-            logger.info('MaintenanceService detected, initializing data and handlers...');
+            logger.info('MaintenanceService detected, registering handlers...');
 
             // Register handlers explicitly
             await handlers.call(srv);
 
-            await initData(srv);
-            logger.info('Data initialization completed');
+            logger.info('Service handlers registered successfully');
         }
     } catch (error) {
         logger.error('Server setup failed', { error: error.message });

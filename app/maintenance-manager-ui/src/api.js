@@ -45,24 +45,10 @@ api.interceptors.request.use(
       config.url = `/odata/v4/maintenance${config.url.startsWith('/') ? config.url : '/' + config.url}`;
     }
 
-    // Check cache for GET requests
-    if (config.method === 'get') {
-      const cacheKey = getCacheKey(config);
-      const cached = cache.get(cacheKey);
-      if (cached && isCacheValid(cached.timestamp)) {
-        console.log('API Cache Hit:', config.url);
-        return Promise.reject(new Error('__CACHE__:' + cacheKey));
-      }
-    }
-
     console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
   error => {
-    if (error.message?.startsWith('__CACHE__:')) {
-      const cacheKey = error.message.split(':')[1];
-      return Promise.resolve(cache.get(cacheKey).data);
-    }
     return Promise.reject(error);
   }
 );
@@ -70,20 +56,6 @@ api.interceptors.request.use(
 // Single response interceptor for logging and normalized errors
 api.interceptors.response.use(
   response => {
-    // Clear cache on mutations to ensure fresh data
-    const method = response.config.method?.toLowerCase();
-    if (['post', 'patch', 'put', 'delete'].includes(method)) {
-      console.log('Clearing cache after mutation:', method, response.config.url);
-      cache.clear();
-    } else if (method === 'get') {
-      // Cache successful GET responses
-      const cacheKey = getCacheKey(response.config);
-      cache.set(cacheKey, {
-        data: response,
-        timestamp: Date.now()
-      });
-    }
-
     console.log('API Response:', response.status, response.config.url);
     return response;
   },
