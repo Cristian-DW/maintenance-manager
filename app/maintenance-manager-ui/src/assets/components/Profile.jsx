@@ -9,7 +9,8 @@ import {
   ChartBarIcon,
   ShieldCheckIcon,
   PencilIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { useMaintenanceRequests } from '../../hooks/useQueries';
 
@@ -22,8 +23,8 @@ export default function Profile() {
   const [status, setStatus] = useState(null);
   const [passwordStatus, setPasswordStatus] = useState(null);
 
-  // Fetch user's requests for statistics
-  const { data: requestsData } = useMaintenanceRequests(0, 1000);
+  // Fetch user's requests for statistics with refetch capability
+  const { data: requestsData, refetch: refetchRequests, isRefetching } = useMaintenanceRequests(0, 1000);
   const allRequests = requestsData?.data || [];
   const userRequests = allRequests.filter(r =>
     r.requestedBy?.ID === user?.ID || r.assignedTo?.ID === user?.ID
@@ -112,12 +113,25 @@ export default function Profile() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent sm:text-4xl">
-            Mi Perfil
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Gestiona tu información personal y revisa tu actividad
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent sm:text-4xl">
+                Mi Perfil
+              </h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Gestiona tu información personal y revisa tu actividad
+              </p>
+            </div>
+            <button
+              onClick={() => refetchRequests()}
+              disabled={isRefetching}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all disabled:opacity-50"
+              title="Actualizar estadísticas"
+            >
+              <ArrowPathIcon className={`h-5 w-5 ${isRefetching ? 'animate-spin' : ''}`} />
+              {isRefetching ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -188,8 +202,8 @@ export default function Profile() {
 
                       {status && status !== 'saving' && (
                         <div className={`p-3 rounded-lg text-sm ${status === 'saved'
-                            ? 'bg-green-50 text-green-700 border border-green-200'
-                            : 'bg-red-50 text-red-700 border border-red-200'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : 'bg-red-50 text-red-700 border border-red-200'
                           }`}>
                           {status === 'saved' ? '✓ Información actualizada correctamente' : status}
                         </div>
@@ -293,8 +307,8 @@ export default function Profile() {
 
                         {passwordStatus && passwordStatus !== 'saving' && (
                           <div className={`p-3 rounded-lg text-sm ${passwordStatus === 'saved'
-                              ? 'bg-green-50 text-green-700 border border-green-200'
-                              : 'bg-red-50 text-red-700 border border-red-200'
+                            ? 'bg-green-50 text-green-700 border border-green-200'
+                            : 'bg-red-50 text-red-700 border border-red-200'
                             }`}>
                             {passwordStatus === 'saved' ? '✓ Contraseña actualizada correctamente' : passwordStatus}
                           </div>
@@ -357,8 +371,8 @@ export default function Profile() {
                   {recentActivity.map((activity) => (
                     <div key={activity.ID} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${activity.status === 'DONE' ? 'bg-green-500' :
-                          activity.status === 'IN_PROGRESS' ? 'bg-blue-500' :
-                            'bg-yellow-500'
+                        activity.status === 'IN_PROGRESS' ? 'bg-blue-500' :
+                          'bg-yellow-500'
                         }`}></div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">

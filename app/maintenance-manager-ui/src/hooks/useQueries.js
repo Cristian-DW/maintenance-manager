@@ -28,7 +28,7 @@ export function useMaintenanceRequests(page = 0, pageSize = 10, filters = {}) {
                 total: res.data?.['@odata.count'] || 0
             };
         },
-        staleTime: 30000, // 30 seconds
+        staleTime: 5000, // 5 seconds - faster updates for user stats
         keepPreviousData: true
     });
 }
