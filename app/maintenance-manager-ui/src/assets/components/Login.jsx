@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth';
+import {
+  EnvelopeIcon,
+  LockClosedIcon,
+  UserIcon,
+  PhoneIcon,
+  BuildingOfficeIcon,
+  ShieldCheckIcon
+} from '@heroicons/react/24/outline';
 
 export default function Login() {
   const location = useLocation();
@@ -12,26 +20,75 @@ export default function Login() {
     }
   }, [location.state]);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    phone: '',
+    department: '',
+    role: 'REQUESTER',
+    acceptTerms: false
+  });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const { login, register } = useAuth();
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const validateForm = () => {
+    if (!isLogin) {
+      if (!formData.name.trim()) {
+        setError('El nombre es requerido');
+        return false;
+      }
+      if (formData.name.trim().length < 3) {
+        setError('El nombre debe tener al menos 3 caracteres');
+        return false;
+      }
+      if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/\s/g, ''))) {
+        setError('El teléfono debe tener 10 dígitos');
+        return false;
+      }
+      if (!formData.acceptTerms) {
+        setError('Debes aceptar los términos y condiciones');
+        return false;
+      }
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('Email inválido');
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       let result;
       if (!isLogin) {
-        result = await register({ name, email, password });
+        result = await register(formData);
       } else {
-        result = await login({ email, password });
+        result = await login({ email: formData.email, password: formData.password });
       }
 
       if (result.ok) {
@@ -41,73 +98,195 @@ export default function Login() {
       }
     } catch (err) {
       console.error('Authentication error:', err);
-      setError('Usuario o contraseña incorrectos');
+      setError('Error en la autenticación. Por favor intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
+  const switchMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+    setFormData({
+      email: '',
+      password: '',
+      name: '',
+      phone: '',
+      department: '',
+      role: 'REQUESTER',
+      acceptTerms: false
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/20">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white/10 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20">
         <div>
+          <div className="flex justify-center">
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <ShieldCheckIcon className="h-10 w-10 text-white" />
+            </div>
+          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white tracking-tight">
             {isLogin ? 'Bienvenido de nuevo' : 'Crear cuenta'}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-300">
-            {isLogin ? 'Accede a tu panel de control' : 'Únete para gestionar solicitudes'}
+            {isLogin ? 'Accede a tu panel de control' : 'Únete al sistema de mantenimiento'}
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            {!isLogin && (
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          {!isLogin && (
+            <>
+              {/* Name */}
               <div>
                 <label htmlFor="name" className="sr-only">Nombre completo</label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-colors"
-                  placeholder="Nombre completo"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <UserIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
+                    placeholder="Nombre completo"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-            )}
-            <div>
-              <label htmlFor="email-address" className="sr-only">Correo electrónico</label>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="sr-only">Teléfono</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <PhoneIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
+                    placeholder="Teléfono (opcional)"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Department */}
+              <div>
+                <label htmlFor="department" className="sr-only">Departamento</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <BuildingOfficeIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="department"
+                    name="department"
+                    type="text"
+                    className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
+                    placeholder="Departamento (opcional)"
+                    value={formData.department}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Role Selection */}
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-2">
+                  Rol
+                </label>
+                <select
+                  id="role"
+                  name="role"
+                  className="appearance-none relative block w-full px-3 py-3 border border-gray-600 text-white bg-gray-800/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
+                  value={formData.role}
+                  onChange={handleChange}
+                >
+                  <option value="REQUESTER">Solicitante</option>
+                  <option value="TECH">Técnico</option>
+                  <option value="MANAGER">Gerente</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-400">
+                  Selecciona el rol que mejor describe tu función
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Email */}
+          <div>
+            <label htmlFor="email-address" className="sr-only">Correo electrónico</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 id="email-address"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className={`appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-colors ${!isLogin ? '' : 'rounded-t-md'}`}
+                className={`appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all ${!isLogin ? 'rounded-xl' : 'rounded-t-xl'}`}
                 placeholder="Correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Contraseña</label>
+          </div>
+
+          {/* Password */}
+          <div>
+            <label htmlFor="password" className="sr-only">Contraseña</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LockClosedIcon className="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all"
                 placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
               />
             </div>
           </div>
 
+          {/* Terms and Conditions */}
+          {!isLogin && (
+            <div className="flex items-start">
+              <input
+                id="acceptTerms"
+                name="acceptTerms"
+                type="checkbox"
+                className="h-4 w-4 mt-1 text-primary-600 focus:ring-primary-500 border-gray-600 rounded bg-gray-800/50"
+                checked={formData.acceptTerms}
+                onChange={handleChange}
+              />
+              <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-300">
+                Acepto los{' '}
+                <a href="#" className="text-primary-400 hover:text-primary-300 underline">
+                  términos y condiciones
+                </a>{' '}
+                y la{' '}
+                <a href="#" className="text-primary-400 hover:text-primary-300 underline">
+                  política de privacidad
+                </a>
+              </label>
+            </div>
+          )}
+
           {error && (
-            <div className="text-red-400 text-sm text-center bg-red-900/30 p-2 rounded border border-red-500/50">
+            <div className="p-3 text-red-300 bg-red-900/30 rounded-xl border border-red-500/50 text-sm">
               {error}
             </div>
           )}
@@ -116,28 +295,26 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-lg hover:shadow-primary-600/30 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-lg hover:shadow-primary-600/30 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : null}
-              {isLogin ? 'Iniciar Sesión' : 'Registrarse'}
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {isLogin ? 'Iniciando sesión...' : 'Registrando...'}
+                </>
+              ) : (
+                <>{isLogin ? 'Iniciar Sesión' : 'Registrarse'}</>
+              )}
             </button>
           </div>
 
           <div className="text-center">
             <button
               type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError(null);
-                setEmail('');
-                setPassword('');
-                setName('');
-              }}
+              onClick={switchMode}
               className="text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors"
             >
               {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}

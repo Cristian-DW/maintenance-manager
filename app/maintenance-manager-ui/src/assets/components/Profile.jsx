@@ -77,10 +77,32 @@ export default function Profile() {
     </div>
   );
 
-  // Calculate statistics
-  const myRequests = userRequests.filter(r => r.requestedBy?.ID === user.ID);
-  const assignedToMe = userRequests.filter(r => r.assignedTo?.ID === user.ID);
+  // Debug logging
+  console.log('Profile - Current user:', user);
+  console.log('Profile - All requests:', allRequests);
+  console.log('Profile - User requests:', userRequests);
+
+  // Calculate statistics with null checks
+  const myRequests = userRequests.filter(r => {
+    const match = r.requestedBy?.ID === user?.ID;
+    if (match) console.log('My request found:', r.title);
+    return match;
+  });
+
+  const assignedToMe = userRequests.filter(r => {
+    const match = r.assignedTo?.ID === user?.ID;
+    if (match) console.log('Assigned to me:', r.title);
+    return match;
+  });
+
   const completedByMe = assignedToMe.filter(r => r.status === 'DONE' || r.status === 'CLOSED');
+
+  console.log('Profile Stats:', {
+    total: userRequests.length,
+    myRequests: myRequests.length,
+    assignedToMe: assignedToMe.length,
+    completedByMe: completedByMe.length
+  });
 
   const stats = [
     {
