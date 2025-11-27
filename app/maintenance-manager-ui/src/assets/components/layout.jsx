@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dialog } from '@headlessui/react';
 import { useAuth } from '../../auth';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -10,7 +11,9 @@ import {
   WrenchIcon,
   UserGroupIcon,
   ChartBarIcon,
-  QrCodeIcon
+  QrCodeIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/react/24/outline';
 import AssetQRScanner from './AssetQRScanner';
 
@@ -26,6 +29,7 @@ export default function Layout({ children }) {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const currentUser = user || { name: 'Invitado', role: 'GUEST', imageUrl: '' };
@@ -185,6 +189,20 @@ export default function Layout({ children }) {
               >
                 <QrCodeIcon className="h-5 w-5" />
                 <span className="hidden sm:inline">Escanear QR</span>
+              </button>
+
+              {/* Theme Toggle */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-all"
+                title={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
+              >
+                {theme === 'light' ? (
+                  <MoonIcon className="h-5 w-5" />
+                ) : (
+                  <SunIcon className="h-5 w-5" />
+                )}
               </button>
 
               {/* Profile dropdown */}

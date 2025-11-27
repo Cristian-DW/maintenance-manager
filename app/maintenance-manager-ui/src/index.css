@@ -35,11 +35,58 @@
     /* Glassmorphism */
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.18);
+
+    /* Background colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+
+    /* Text colors */
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+
+    /* Border colors */
+    --border-primary: #e5e7eb;
+    --border-secondary: #d1d5db;
+  }
+
+  /* Dark Mode */
+  [data-theme='dark'] {
+    /* Backgrounds - Dark */
+    --bg-primary: #1f2937;
+    --bg-secondary: #111827;
+    --bg-tertiary: #0f172a;
+
+    /* Text - Light for dark mode */
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-tertiary: #9ca3af;
+
+    /* Borders - Lighter for dark mode */
+    --border-primary: #374151;
+    --border-secondary: #4b5563;
+
+    /* Glassmorphism - Dark */
+    --glass-bg: rgba(31, 41, 55, 0.7);
+    --glass-border: rgba(75, 85, 99, 0.18);
+
+    /* Shadows - Darker */
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
+    --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 
   body {
     @apply bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/30;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  [data-theme='dark'] body {
+    @apply bg-gradient-to-br from-gray-900 via-purple-950/30 to-blue-950/30;
   }
 
   * {
