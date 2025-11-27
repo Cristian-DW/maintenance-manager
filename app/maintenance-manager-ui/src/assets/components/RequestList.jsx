@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useMaintenanceRequests, useUpdateMaintenanceRequest, useDeleteMaintenanceRequest } from '../../hooks/useQueries';
+import SearchBar from './SearchBar';
+import FilterPanel from './FilterPanel';
 
 const priorityClasses = {
   1: 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 ring-green-600/30 shadow-sm',
@@ -25,14 +27,96 @@ import RequestForm from './RequestForm';
 export default function RequestList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({});
+  const [savedFilters, setSavedFilters] = useState(() => {
+    const saved = localStorage.getItem('requestFilters');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Use React Query hooks
   const { data, isLoading: loading, error: queryError } = useMaintenanceRequests(0, 100);
   const updateMutation = useUpdateMaintenanceRequest();
   const deleteMutation = useDeleteMaintenanceRequest();
 
-  const requests = data?.data || [];
+  const allRequests = data?.data || [];
   const error = queryError?.message || null;
+
+  // Filter definitions
+  const filterConfig = [
+    {
+      key: 'status',
+      label: 'Estado',
+      type: 'select',
+      options: [
+        { value: 'OPEN', label: 'Abierta' },
+        { value: 'ASSIGNED', label: 'Asignada' },
+        { value: 'IN_PROGRESS', label: 'En Progreso' },
+        { value: 'DONE', label: 'Terminada' },
+        { value: 'CLOSED', label: 'Cerrada' },
+      ]
+    },
+    {
+      key: 'priority',
+      label: 'Prioridad',
+      type: 'select',
+      options: [
+        { value: '1', label: 'Baja' },
+        { value: '2', label: 'Media' },
+        { value: '3', label: 'Alta' },
+      ]
+    },
+    {
+      key: 'createdAt',
+      label: 'Fecha de Creación',
+      type: 'dateRange'
+    }
+  ];
+
+  // Apply search and filters
+  const filteredRequests = useMemo(() => {
+    let result = allRequests;
+
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(r =>
+        r.title?.toLowerCase().includes(query) ||
+        r.description?.toLowerCase().includes(query) ||
+        r.asset?.name?.toLowerCase().includes(query) ||
+        r.assignedTo?.name?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply filters
+    if (filters.status) {
+      result = result.filter(r => r.status === filters.status);
+    }
+    if (filters.priority) {
+      result = result.filter(r => r.priority === Number(filters.priority));
+    }
+    if (filters.createdAtFrom) {
+      result = result.filter(r => new Date(r.createdAt) >= new Date(filters.createdAtFrom));
+    }
+    if (filters.createdAtTo) {
+      result = result.filter(r => new Date(r.createdAt) <= new Date(filters.createdAtTo));
+    }
+
+    return result;
+  }, [allRequests, searchQuery, filters]);
+
+  const requests = filteredRequests;
+
+  // Save filter to local storage
+  const handleSaveFilter = (filter) => {
+    const updated = [...savedFilters, filter];
+    setSavedFilters(updated);
+    localStorage.setItem('requestFilters', JSON.stringify(updated));
+  };
+
+  const handleLoadFilter = (filter) => {
+    setFilters(filter.filters);
+  };
 
   // Delete request
   const deleteRequest = async (id) => {
@@ -90,6 +174,38 @@ export default function RequestList() {
           </button>
         </div>
       </div>
+
+      {/* Search and Filter Bar */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+        <div className="flex-1">
+          <SearchBar
+            placeholder="Buscar solicitudes por título, descripción, activo o técnico..."
+            onSearch={setSearchQuery}
+          />
+        </div>
+        <FilterPanel
+          filters={filterConfig}
+          onFilterChange={(newFilters) => setFilters(newFilters)}
+          savedFilters={savedFilters}
+          onSaveFilter={handleSaveFilter}
+          onLoadFilter={handleLoadFilter}
+        />
+      </div>
+
+      {/* Active Filters Indicator */}
+      {(searchQuery || Object.values(filters).some(v => v)) && (
+        <div className="mb-4 flex items-center gap-2 text-sm">
+          <span className="text-gray-600">
+            Mostrando {requests.length} de {allRequests.length} solicitudes
+          </span>
+          {searchQuery && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary-50 text-primary-700">
+              Búsqueda: "{searchQuery}"
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="mt-6 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

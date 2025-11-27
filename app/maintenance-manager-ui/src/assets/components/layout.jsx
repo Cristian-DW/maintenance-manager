@@ -176,6 +176,17 @@ export default function Layout({ children }) {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1" />
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              {/* QR Scanner Button */}
+              <button
+                type="button"
+                onClick={() => setShowQRScanner(true)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-primary-600 hover:bg-primary-50 transition-all"
+                title="Escanear código QR"
+              >
+                <QrCodeIcon className="h-5 w-5" />
+                <span className="hidden sm:inline">Escanear QR</span>
+              </button>
+
               {/* Profile dropdown */}
               <div className="relative">
                 <button type="button" className="-m-1.5 flex items-center p-1.5 hover:bg-gray-100/50 rounded-lg transition-all group" id="user-menu-button">
@@ -197,6 +208,11 @@ export default function Layout({ children }) {
           <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
+
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <AssetQRScanner onClose={() => setShowQRScanner(false)} />
+      )}
     </div>
   );
 }
