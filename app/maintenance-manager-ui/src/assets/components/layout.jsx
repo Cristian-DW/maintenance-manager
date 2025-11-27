@@ -9,8 +9,10 @@ import {
   ClipboardDocumentListIcon,
   WrenchIcon,
   UserGroupIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  QrCodeIcon
 } from '@heroicons/react/24/outline';
+import AssetQRScanner from './AssetQRScanner';
 
 const baseNavigation = [
   { name: 'Panel de Control', href: '/dashboard', icon: HomeIcon },
@@ -21,6 +23,7 @@ const baseNavigation = [
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -61,8 +64,8 @@ export default function Layout({ children }) {
                     key={item.name}
                     to={item.href}
                     className={`group flex items-center rounded-xl px-3 py-3 text-base font-semibold leading-7 transition-all duration-200 ${isActive(item.href)
-                        ? 'bg-gradient-to-r from-primary-50 to-purple-50 text-primary-700 shadow-sm'
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary-50/50 hover:to-purple-50/50 hover:text-primary-600'
+                      ? 'bg-gradient-to-r from-primary-50 to-purple-50 text-primary-700 shadow-sm'
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary-50/50 hover:to-purple-50/50 hover:text-primary-600'
                       }`}
                     onClick={() => setSidebarOpen(false)}
                   >
@@ -119,13 +122,13 @@ export default function Layout({ children }) {
                       <Link
                         to={item.href}
                         className={`group flex gap-x-3 rounded-xl p-3 text-sm leading-6 font-semibold transition-all duration-200 ${isActive(item.href)
-                            ? 'bg-gradient-to-r from-primary-50 to-purple-50 text-primary-700 shadow-sm'
-                            : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary-50/50 hover:to-purple-50/50 hover:text-primary-600'
+                          ? 'bg-gradient-to-r from-primary-50 to-purple-50 text-primary-700 shadow-sm'
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary-50/50 hover:to-purple-50/50 hover:text-primary-600'
                           }`}
                       >
                         <item.icon className={`h-6 w-6 shrink-0 transition-all duration-200 ${isActive(item.href)
-                            ? 'text-primary-600'
-                            : 'text-gray-400 group-hover:text-primary-500 group-hover:scale-110'
+                          ? 'text-primary-600'
+                          : 'text-gray-400 group-hover:text-primary-500 group-hover:scale-110'
                           }`} aria-hidden="true" />
                         {item.name}
                       </Link>

@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { PlusIcon, TrashIcon, SparklesIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, SparklesIcon, PencilIcon, QrCodeIcon } from '@heroicons/react/24/outline';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '../../hooks/useQueries';
+import AssetQRScanner from './AssetQRScanner';
+import AssetQRGenerator from './AssetQRGenerator';
 
 export default function AssetList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState({ code: '', name: '', location: '', info: '', status: 1 });
   const [bulk, setBulk] = useState('');
   const [editingAsset, setEditingAsset] = useState(null);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrGeneratorAsset, setQrGeneratorAsset] = useState(null);
 
   // Use React Query hooks
   const { data, isLoading: loading, error: queryError } = useAssets(0, 1000);
@@ -175,13 +179,14 @@ export default function AssetList() {
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nombre</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Ubicación</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">QR</th>
                     <th className="relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Acciones</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center">
+                      <td colSpan={6} className="px-6 py-8 text-center">
                         <div className="flex justify-center items-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                           <span className="ml-3 text-gray-600">Cargando activos...</span>
@@ -190,16 +195,15 @@ export default function AssetList() {
                     </tr>
                   ) : error ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8">
+                      <td colSpan={6} className="px-6 py-8">
                         <div className="p-4 text-red-700 bg-red-100 rounded-lg border border-red-300">
                           <p className="font-medium">{error}</p>
-                          <button onClick={load} className="mt-2 text-sm text-red-700 hover:text-red-900 underline">Reintentar</button>
                         </div>
                       </td>
                     </tr>
                   ) : assets.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No hay activos.</td>
+                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No hay activos.</td>
                     </tr>
                   ) : (
                     assets.map(a => (
@@ -208,6 +212,16 @@ export default function AssetList() {
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{a.name}</td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{a.location}</td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{a.status === 1 ? 'Activo' : 'Inactivo'}</td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm">
+                          <button
+                            onClick={() => setQrGeneratorAsset(a)}
+                            className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
+                            title={a.qrCode ? 'Ver código QR' : 'Generar código QR'}
+                          >
+                            <QrCodeIcon className="h-5 w-5" />
+                            {a.qrCode ? <span className="text-xs">Ver</span> : <span className="text-xs">Generar</span>}
+                          </button>
+                        </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <div className="flex items-center justify-end gap-2">
                             <button
@@ -285,6 +299,22 @@ export default function AssetList() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <AssetQRScanner onClose={() => setShowQRScanner(false)} />
+      )}
+
+      {/* QR Generator Modal */}
+      {qrGeneratorAsset && (
+        <AssetQRGenerator
+          asset={qrGeneratorAsset}
+          onClose={() => setQrGeneratorAsset(null)}
+          onGenerated={(qrCode) => {
+            console.log('QR generated:', qrCode);
+          }}
+        />
       )}
     </div>
   );

@@ -35,6 +35,7 @@ entity Assets : cuid, managed {
     location    : String(200) @mandatory;
     info        : String;
     status      : Integer @mandatory default 1; // 1 = active, 0 = inactive
+    qrCode      : String(100); // Unique QR code for asset identification
     requests    : Association to many MaintenanceRequests on requests.asset = $self;
 }
 
