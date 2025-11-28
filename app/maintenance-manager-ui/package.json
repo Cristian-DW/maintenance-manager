@@ -14,6 +14,7 @@
     "@heroicons/react": "^2.0.18",
     "@tanstack/react-query": "^5.90.10",
     "axios": "^1.6.2",
+    "date-fns": "^4.1.0",
     "html5-qrcode": "^2.3.8",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
