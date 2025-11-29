@@ -5,6 +5,7 @@ service MaintenanceService {
     entity Assets as projection on db.Assets;
     entity Users as projection on db.Users;
     entity MaintenanceRequests as projection on db.MaintenanceRequests;
+    entity Notifications as projection on db.Notifications;
 
     action authenticate(email: String, password: String) returns {
         ok: Boolean;
