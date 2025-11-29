@@ -237,8 +237,8 @@ export default function Layout({ children }) {
           </div>
         </div>
 
-        <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        <main className="flex-1 w-full">
+          <div className="w-full h-full">{children}</div>
         </main>
       </div>
 
