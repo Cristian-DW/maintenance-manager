@@ -253,3 +253,64 @@ export function useDeleteUser() {
         }
     });
 }
+
+// ==================== NOTIFICATIONS ====================
+
+/**
+ * Hook to fetch notifications for current user
+ */
+export function useNotifications() {
+    return useQuery({
+        queryKey: ['notifications'],
+        queryFn: async () => {
+            const res = await api.get('/Notifications?$expand=relatedRequest&$orderby=createdAt desc');
+            return res.data?.value || res.data || [];
+        },
+        refetchInterval: 30000, // Poll every 30 seconds
+        staleTime: 10000 // 10 seconds
+    });
+}
+
+/**
+ * Hook to mark notification as read
+ */
+export function useMarkNotificationAsRead() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id) => api.patch(`/Notifications('${id}')`, {
+            isRead: true,
+            readAt: new Date().toISOString()
+        }),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['notifications']);
+        }
+    });
+}
+
+/**
+ * Hook to mark all notifications as read
+ */
+export function useMarkAllNotificationsAsRead() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async () => {
+            const res = await api.get('/Notifications?$filter=isRead eq false');
+            const unread = res.data?.value || res.data || [];
+
+            // Mark all unread as read
+            await Promise.all(
+                unread.map(notification =>
+                    api.patch(`/Notifications('${notification.ID}')`, {
+                        isRead: true,
+                        readAt: new Date().toISOString()
+                    })
+                )
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['notifications']);
+        }
+    });
+}

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dialog } from '@headlessui/react';
 import { useAuth } from '../../auth';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '../../hooks/useQueries';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -16,6 +17,7 @@ import {
   MoonIcon
 } from '@heroicons/react/24/outline';
 import AssetQRScanner from './AssetQRScanner';
+import NotificationCenter from './NotificationCenter';
 
 const baseNavigation = [
   { name: 'Panel de Control', href: '/dashboard', icon: HomeIcon },
@@ -31,6 +33,11 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  // Notifications
+  const { data: notifications = [], isLoading: notificationsLoading } = useNotifications();
+  const markAsReadMutation = useMarkNotificationAsRead();
+  const markAllAsReadMutation = useMarkAllNotificationsAsRead();
 
   const currentUser = user || { name: 'Invitado', role: 'GUEST', imageUrl: '' };
   const navigation = baseNavigation.filter(item => {
@@ -204,6 +211,14 @@ export default function Layout({ children }) {
                   <SunIcon className="h-5 w-5" />
                 )}
               </button>
+
+              {/* Notifications */}
+              <NotificationCenter
+                notifications={notifications}
+                onMarkAsRead={(id) => markAsReadMutation.mutate(id)}
+                onMarkAllAsRead={() => markAllAsReadMutation.mutate()}
+                isLoading={notificationsLoading}
+              />
 
               {/* Profile dropdown */}
               <div className="relative">
