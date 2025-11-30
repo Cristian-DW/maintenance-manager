@@ -13,10 +13,10 @@ import {
 
 export default function LandingPage() {
     return (
-        <div className="min-h-screen bg-gray-900 text-white selection:bg-primary-500 selection:text-white">
+        <div className="min-h-screen w-full bg-gray-900 text-white selection:bg-primary-500 selection:text-white m-0 p-0">
             {/* Navbar */}
-            <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-gray-900/80 backdrop-blur-md transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="fixed top-0 w-full left-0 right-0 z-50 border-b border-white/10 bg-gray-900/80 backdrop-blur-md transition-all duration-300 m-0 p-0">
+                <div className="w-full px-6 sm:px-8 lg:px-16">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                             <div className="bg-gradient-to-tr from-primary-500 to-purple-600 p-2 rounded-lg">
@@ -49,8 +49,8 @@ export default function LandingPage() {
             </nav>
 
             {/* Hero Section */}
-            <div className="relative pt-32 pb-20 sm:pt-48 sm:pb-32 overflow-hidden">
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+            <div className="relative w-full pt-32 pb-20 sm:pt-48 sm:pb-32 overflow-hidden m-0">
+                <div className="relative w-full px-6 sm:px-8 lg:px-16 text-center z-10">
                     <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
                         <span className="block text-white mb-2">Mantenimiento</span>
                         <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-primary-500 to-purple-600">
@@ -89,8 +89,8 @@ export default function LandingPage() {
             </div>
 
             {/* Stats Section */}
-            <div className="py-10 border-y border-white/5 bg-white/5 backdrop-blur-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full py-10 border-y border-white/5 bg-white/5 backdrop-blur-sm m-0">
+                <div className="w-full px-6 sm:px-8 lg:px-16">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                         <StatItem number="500+" label="Empresas" />
                         <StatItem number="10k+" label="Activos Gestionados" />
@@ -101,8 +101,8 @@ export default function LandingPage() {
             </div>
 
             {/* Features Section */}
-            <div id="features" className="py-32 relative">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="features" className="w-full py-32 px-40 relative m-0">
+                <div className="w-full px-6 sm:px-8 lg:px-16">
                     <div className="text-center mb-20">
                         <h2 className="text-primary-500 font-semibold tracking-wide uppercase text-sm mb-3">Características</h2>
                         <h3 className="text-4xl font-bold text-white mb-6">Todo lo que necesitas en un solo lugar</h3>
@@ -153,8 +153,8 @@ export default function LandingPage() {
             </div>
 
             {/* How it Works Section */}
-            <div id="how-it-works" className="py-32 bg-gray-800/30 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div id="how-it-works" className="w-full py-32 bg-gray-800/30 relative overflow-hidden m-0">
+                <div className="w-full px-6 sm:px-8 lg:px-16 relative z-10">
                     <div className="text-center mb-20">
                         <h2 className="text-3xl font-bold text-white mb-6">Cómo funciona</h2>
                         <p className="text-xl text-gray-400">Empieza a optimizar tu mantenimiento en 3 simples pasos</p>
@@ -181,8 +181,8 @@ export default function LandingPage() {
             </div>
 
             {/* Testimonials Section */}
-            <div id="testimonials" className="py-32">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="testimonials" className="w-full py-32 m-0">
+                <div className="w-full px-6 sm:px-8 lg:px-16">
                     <h2 className="text-3xl font-bold text-center text-white mb-16">Lo que dicen nuestros clientes</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <TestimonialCard
@@ -205,8 +205,8 @@ export default function LandingPage() {
             </div>
 
             {/* FAQ Section */}
-            <div id="faq" className="py-32 bg-gray-800/30">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="faq" className="w-full py-32 bg-gray-800/30 m-0">
+                <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 lg:px-16">
                     <h2 className="text-3xl font-bold text-center text-white mb-16">Preguntas Frecuentes</h2>
                     <div className="space-y-4">
                         <FaqItem
@@ -226,9 +226,9 @@ export default function LandingPage() {
             </div>
 
             {/* CTA Section */}
-            <div className="py-32 relative overflow-hidden">
+            <div className="w-full py-32 relative overflow-hidden m-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-900 to-purple-900 opacity-50"></div>
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                <div className="w-full max-w-5xl mx-auto px-6 sm:px-8 lg:px-16 text-center relative z-10">
                     <h2 className="text-4xl font-bold text-white mb-8">¿Listo para transformar tu gestión?</h2>
                     <p className="text-xl text-gray-300 mb-10">
                         Únete a miles de empresas que ya confían en Maintenance Manager.
@@ -244,8 +244,8 @@ export default function LandingPage() {
             </div>
 
             {/* Footer */}
-            <footer className="bg-gray-950 border-t border-white/10 py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <footer className="w-full bg-gray-950 border-t border-white/10 py-16 m-0">
+                <div className="w-full px-6 sm:px-8 lg:px-16">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                         <div>
                             <div className="flex items-center mb-6">

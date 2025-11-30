@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dialog } from '@headlessui/react';
 import { useAuth } from '../../auth';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '../../hooks/useQueries';
 import {
   Bars3Icon,
@@ -13,7 +12,6 @@ import {
   UserGroupIcon,
   ChartBarIcon,
   QrCodeIcon,
-  SunIcon,
   MoonIcon
 } from '@heroicons/react/24/outline';
 import AssetQRScanner from './AssetQRScanner';
@@ -31,7 +29,6 @@ export default function Layout({ children }) {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   // Notifications
@@ -176,7 +173,7 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <div className="lg:pl-72">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 bg-white/80 backdrop-blur-xl border-b border-purple-200/50 px-4 shadow-lg sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 w-full bg-white/80 backdrop-blur-xl border-b border-purple-200/50 px-4 shadow-lg sm:gap-x-6 sm:px-6 lg:px-8">
           <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden hover:bg-gray-100 rounded-lg transition-colors" onClick={() => setSidebarOpen(true)}>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
@@ -196,20 +193,6 @@ export default function Layout({ children }) {
               >
                 <QrCodeIcon className="h-5 w-5" />
                 <span className="hidden sm:inline">Escanear QR</span>
-              </button>
-
-              {/* Theme Toggle */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-all"
-                title={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
-              >
-                {theme === 'light' ? (
-                  <MoonIcon className="h-5 w-5" />
-                ) : (
-                  <SunIcon className="h-5 w-5" />
-                )}
               </button>
 
               {/* Notifications */}

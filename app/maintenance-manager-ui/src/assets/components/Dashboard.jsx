@@ -21,11 +21,13 @@ import {
   ArrowTrendingUpIcon,
 } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../auth';
 import api from '../../api';
 
 const COLORS = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B'];
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalRequests: 0,
     openRequests: 0,
