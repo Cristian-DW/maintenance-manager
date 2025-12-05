@@ -203,19 +203,25 @@ export default function Dashboard() {
           {stats_cards.map((item, index) => (
             <div
               key={item.name}
-              className="relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="group relative overflow-hidden bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/80 p-6 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
               style={{ animationDelay: `${(index + 3) * 100}ms` }}
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.bgGradient} opacity-50`}></div>
+              {/* Gradient overlay on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${item.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl`}></div>
+
               <div className="relative flex items-center">
                 <div className="flex-shrink-0">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${item.gradient} shadow-lg`}>
-                    <item.icon className="h-8 w-8 text-white" aria-hidden="true" />
+                  <div className={`p-4 rounded-2xl bg-gradient-to-br ${item.gradient} shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300`}>
+                    <item.icon className="h-10 w-10 text-white" aria-hidden="true" />
                   </div>
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dt className="text-sm font-semibold text-gray-700 truncate">{item.name}</dt>
-                  <dd className="text-3xl font-bold bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent">{item.value}</dd>
+                <div className="ml-6 w-0 flex-1">
+                  <dt className="text-sm font-bold text-gray-700 truncate group-hover:text-gray-900 transition-colors uppercase tracking-wide">{item.name}</dt>
+                  <dd className="flex items-baseline gap-2">
+                    <span className="text-4xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent">{item.value}</span>
+                    {/* Trend indicator - placeholder for future */}
+                    <span className="text-xs text-green-600 font-semibold hidden">↑ 12%</span>
+                  </dd>
                 </div>
               </div>
             </div>

@@ -277,15 +277,23 @@ export default function RequestList() {
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               <div className="font-medium text-gray-900">{request.asset?.code || request.assetCode || 'N/A'}</div>
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ring-2 ring-inset transition-all hover:scale-105 ${statusClasses[request.status] || statusClasses.OPEN}`}>
-                                <StatusIcon className="mr-1.5 h-4 w-4" />
-                                {request.status || 'OPEN'}
+                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ring-1 ring-inset transition-all ${request.status === 'OPEN' ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 ring-amber-600/20 shadow-amber-200' :
+                                request.status === 'IN_PROGRESS' ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 ring-blue-600/20 shadow-blue-200' :
+                                  request.status === 'DONE' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 ring-green-600/20 shadow-green-200' :
+                                    'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 ring-gray-600/20 shadow-gray-200'
+                                }`}>
+                                <StatusIcon className="h-3.5 w-3.5" />
+                                {statusLabels[request.status] || 'Desconocido'}
                               </span>
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-semibold ring-2 ring-inset transition-all hover:scale-105 ${priorityClasses[request.priority] || priorityClasses[2]}`}>
-                                Prioridad {request.priority || 2}
+                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ring-1 ring-inset ${request.priority === 3 ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 ring-red-600/30 shadow-red-200 animate-pulse' :
+                                  request.priority === 2 ? 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 ring-yellow-600/20 shadow-yellow-200' :
+                                    'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 ring-green-600/20 shadow-green-200'
+                                }`}>
+                                {request.priority === 3 && <span className="inline-block w-2 h-2 bg-red-600 rounded-full"></span>}
+                                {priorityLabels[request.priority] || 'Desconocida'}
                               </span>
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
