@@ -159,14 +159,14 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-purple-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/20">
       <div className="w-full px-6 sm:px-8 lg:px-12 py-8 max-w-[1920px] mx-auto">
         {/* Header con animación fade-in */}
         <div className="mb-8 animate-fadeInUp">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             Panel de Control
           </h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-lg text-gray-600">
             Bienvenido, {user?.name || 'Usuario'}. Aquí está un resumen de tu sistema.
           </p>
         </div>
