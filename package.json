@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "start": "cds run",
+        "start": "NODE_ENV=production cds run --port ${PORT:-4004}",
         "dev": "cds watch",
         "build": "cds build/all",
         "deploy": "cds deploy",

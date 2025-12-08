@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // Use the base URL for the CAP server - routes will include the full path
-  baseURL: 'http://localhost:4004',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4004',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

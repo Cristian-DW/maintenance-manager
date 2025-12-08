@@ -1,0 +1,41 @@
+services:
+  # Backend Service
+  - type: web
+    name: maintenance-manager-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        value: /opt/render/project/src/db.sqlite
+    disk:
+      name: database
+      mountPath: /opt/render/project/src
+      sizeGB: 1
+
+  # Frontend Service  
+  - type: web
+    name: maintenance-manager-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: cd app/maintenance-manager-ui && npm install && npm run build
+    staticPublishPath: ./app/maintenance-manager-ui/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: maintenance-manager-backend
+          property: host
