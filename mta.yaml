@@ -20,8 +20,8 @@ modules:
     path: .
     parameters:
       buildpack: nodejs_buildpack
-      memory: 512M
-      disk-quota: 1024M
+      memory: 256M
+      disk-quota: 512M
     build-parameters:
       builder: npm-ci
     provides:
@@ -29,20 +29,14 @@ modules:
         properties:
           srv-url: ${default-url}
     requires:
-      - name: maintenance-manager-db
       - name: maintenance-manager-uaa
-      - name: maintenance-manager-destination
-        optional: true
     properties:
       NODE_ENV: production
-      JWT_SECRET: ((jwt-secret))
-      JWT_EXPIRES_IN: 1h
-      JWT_REFRESH_EXPIRES_IN: 7d
 
-  # Frontend UI
+  # Frontend UI (Static Content)
   - name: maintenance-manager-ui
-    type: html5
-    path: app/maintenance-manager-ui
+    type: static-file
+    path: app/maintenance-manager-ui/dist
     build-parameters:
       builder: custom
       commands:
@@ -50,8 +44,10 @@ modules:
         - npm run build
       supported-platforms: []
     parameters:
-      disk-quota: 256M
-      memory: 256M
+      disk-quota: 128M
+      memory: 128M
+      routes:
+        - route: ${default-uri}
     requires:
       - name: srv-api
         group: destinations
@@ -60,24 +56,7 @@ modules:
           url: ~{srv-url}
           forwardAuthToken: true
 
-  # Database Deployer (for HANA)
-  - name: maintenance-manager-db-deployer
-    type: hdb
-    path: db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: maintenance-manager-db
-
 resources:
-  # HANA Database
-  - name: maintenance-manager-db
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
-    properties:
-      hdi-container-name: ${service-name}
 
   # XSUAA Authentication
   - name: maintenance-manager-uaa
@@ -106,10 +85,3 @@ resources:
             description: Requester
             role-template-references:
               - $XSAPPNAME.Requester
-
-  # Destination Service (optional)
-  - name: maintenance-manager-destination
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: destination
-      service-plan: lite
